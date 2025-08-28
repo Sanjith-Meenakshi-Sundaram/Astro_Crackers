@@ -11,7 +11,9 @@ const auth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId);
+    
+    // THE FIX IS HERE: We changed 'decoded.userId' to 'decoded.id'
+    const user = await User.findById(decoded.id);
     
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'User not found or inactive' });
