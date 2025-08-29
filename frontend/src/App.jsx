@@ -1,35 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Orders from "./pages/Orders";
+import BottomNavigation from "./components/BottomNavigation";
+// import Category from "./pages/Category";
+// import ProductDetail from "./pages/ProductDetail";
+// import Cart from "./pages/Cart";
+// import Login from "./pages/Auth/Login";
+// import Signup from "./pages/Auth/Signup";
+// import Profile from "./pages/Profile";
+// import AdminDashboard from "./pages/Admin/AdminDashboard";
+import Navbar from "./components/Navbar";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App(){
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1 container mx-auto px-4 py-6">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/orders" element={<Orders />} />
+          {/* <Route path="/category/:slug" element={<Category />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<AdminDashboard />} /> */}
+        </Routes>
+      </main>
+      <BottomNavigation />
+    </div>
+  );
 }
-
-export default App
