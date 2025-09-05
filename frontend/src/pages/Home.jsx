@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { ChevronRight, Star, Heart, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 
-// ProductCard component (kept your design, added Add-to-Cart logic)
-const ProductCard = ({ product, onAddToCart }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+const VITE_API_URL = import.meta.env.VITE_API_URL;
 
+const ProductCard = ({ product, onAddToCart, onToggleWishlist, isWishlisted }) => {
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group">
       <div className="relative overflow-hidden">
@@ -22,14 +22,13 @@ const ProductCard = ({ product, onAddToCart }) => {
           </div>
         )}
         <button
-          onClick={() => setIsWishlisted(!isWishlisted)}
+          onClick={() => onToggleWishlist(product._id)}
           className="absolute top-3 right-3 bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-all duration-200"
         >
           <Heart
             size={16}
-            className={`${
-              isWishlisted ? "fill-red-500 text-red-500" : "text-gray-600"
-            } transition-colors`}
+            className={`${isWishlisted ? "fill-red-500 text-red-500" : "text-gray-600"
+              } transition-colors`}
           />
         </button>
       </div>
@@ -38,7 +37,9 @@ const ProductCard = ({ product, onAddToCart }) => {
           {product.name}
         </h3>
         <div className="flex items-center justify-between mb-3">
-          <span className="text-lg font-bold text-red-600">₹{product.price}</span>
+          <span className="text-lg font-bold text-red-600">
+            ₹{product.price}
+          </span>
           <div className="flex items-center gap-1 text-yellow-400">
             {[1, 2, 3, 4, 5].map((i) => (
               <Star key={i} size={12} fill="currentColor" />
@@ -59,104 +60,235 @@ const ProductCard = ({ product, onAddToCart }) => {
 };
 
 const Home = () => {
+  const { user, token } = useAuth();
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Categories (unchanged)
+  // Hero images that rotate every 5 seconds
+  const heroImages = [
+    "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=2070&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=2070&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=2070&auto=format&fit=crop",
+  ];
+
+  // Categories
   const categories = [
     {
-      name: "Morning Crackers",
+      name: "morning crackers",
       image:
         "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=800&auto=format&fit=crop",
       description: "Start your day with colorful celebrations",
     },
     {
-      name: "Night Crackers",
+      name: "night crackers",
       image:
         "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=800&auto=format&fit=crop",
       description: "Illuminate the night sky",
     },
     {
-      name: "Premium Skyshots",
+      name: "premium skyshots",
       image:
         "https://images.unsplash.com/photo-1467810563316-b5476525c0f9?q=80&w=800&auto=format&fit=crop",
       description: "Professional grade fireworks",
     },
     {
-      name: "Kids Special",
+      name: "kids special",
       image:
         "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop",
       description: "Safe and fun for little ones",
     },
     {
-      name: "Gift Boxes",
+      name: "gift boxes",
       image:
         "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=800&auto=format&fit=crop",
       description: "Perfect for special occasions",
     },
   ];
 
-  // Fetch products from backend
+  // Auto-rotate hero images every 5 seconds
   useEffect(() => {
-    const fetchProducts = async () => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch featured products and wishlist
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/products`
-        );
-        setFeaturedProducts(res.data.slice(0, 4)); // take only first 4 as featured
+        const response = await axios.get(`${VITE_API_URL}/api/featured`);
+        console.log("API Response:", response.data);
+        setFeaturedProducts(response.data);
       } catch (err) {
-        console.error("Error fetching products:", err);
+        console.error("Error fetching featured products:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
-  }, []);
+    const fetchWishlist = async () => {
+      if (!user || !token) return;
 
-  // Handle Add to Cart (later we connect with CartContext)
-  const handleAddToCart = (product) => {
-    console.log("Add to cart:", product);
-    // 🔥 Later: call CartContext.addToCart(product)
+      try {
+        const response = await axios.get(`${VITE_API_URL}/api/wishlist`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setWishlistItems(response.data.items || []);
+      } catch (err) {
+        console.error("Error fetching wishlist:", err);
+      }
+    };
+
+    fetchFeaturedProducts();
+    fetchWishlist();
+  }, [user, token]);
+
+  // Check if product is in wishlist
+  const isProductWishlisted = (productId) => {
+    return wishlistItems.some(item => item.product._id === productId || item.product === productId);
+  };
+
+  // Add to cart function
+  const handleAddToCart = async (product) => {
+    if (!user || !token) {
+      alert("Please login to add items to cart");
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${VITE_API_URL}/api/cart`,
+        { productId: product._id, quantity: 1 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Show success message
+      const successMsg = document.createElement('div');
+      successMsg.textContent = 'Added to cart successfully!';
+      successMsg.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      document.body.appendChild(successMsg);
+      setTimeout(() => successMsg.remove(), 3000);
+
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+
+      const errorMsg = document.createElement('div');
+      errorMsg.textContent = 'Failed to add to cart. Please try again.';
+      errorMsg.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      document.body.appendChild(errorMsg);
+      setTimeout(() => errorMsg.remove(), 3000);
+    }
+  };
+
+  // Toggle wishlist function
+  const handleToggleWishlist = async (productId) => {
+    if (!user || !token) {
+      alert("Please login to add items to wishlist");
+      return;
+    }
+
+    const isWishlisted = isProductWishlisted(productId);
+
+    try {
+      if (isWishlisted) {
+        // Remove from wishlist
+        await axios.delete(`${VITE_API_URL}/api/wishlist/${productId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setWishlistItems(prev => prev.filter(item =>
+          (item.product._id || item.product) !== productId
+        ));
+
+        const successMsg = document.createElement('div');
+        successMsg.textContent = 'Removed from wishlist!';
+        successMsg.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        document.body.appendChild(successMsg);
+        setTimeout(() => successMsg.remove(), 3000);
+
+      } else {
+        // Add to wishlist
+        const response = await axios.post(
+          `${VITE_API_URL}/api/wishlist`,
+          { productId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setWishlistItems(response.data.items || []);
+
+        const successMsg = document.createElement('div');
+        successMsg.textContent = 'Added to wishlist!';
+        successMsg.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        document.body.appendChild(successMsg);
+        setTimeout(() => successMsg.remove(), 3000);
+      }
+    } catch (error) {
+      console.error("Error toggling wishlist:", error);
+
+      const errorMsg = document.createElement('div');
+      errorMsg.textContent = error.response?.data?.message || 'Failed to update wishlist. Please try again.';
+      errorMsg.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      document.body.appendChild(errorMsg);
+      setTimeout(() => errorMsg.remove(), 3000);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section (unchanged) */}
-      <section
-        className="relative h-[70vh] sm:h-[80vh] lg:h-[90vh] bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=2070&auto=format&fit=crop')",
-        }}
-      >
+      {/* Hero Section */}
+      <section className="relative h-[50vh] sm:h-[55vh] lg:h-[60vh] overflow-hidden">
+        {heroImages.map((image, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ${index === currentImageIndex ? "opacity-100" : "opacity-0"
+              }`}
+            style={{
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('${image}')`,
+            }}
+          />
+        ))}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70"></div>
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-4 max-w-4xl mx-auto">
-          <div className="space-y-6 animate-fade-in">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight">
+          <div className="space-y-4 animate-fade-in">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
               <span className="block">STAY WARM,</span>
               <span className="block text-red-400">LOOK COOL</span>
             </h1>
-            <p className="text-lg sm:text-xl lg:text-2xl max-w-3xl leading-relaxed opacity-90">
+            <p className="text-base sm:text-lg lg:text-xl max-w-3xl leading-relaxed opacity-90">
               Light up your celebrations with the finest selection of crackers
               from Sivakasi.
               <span className="block mt-2">
                 Safe, spectacular, and delivered with care.
               </span>
             </p>
-            <div className="flex justify-center mt-8">
+            <div className="flex justify-center mt-6">
               <Link
                 to="/products"
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full text-base transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
               >
                 Discover Collection
               </Link>
             </div>
           </div>
         </div>
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {heroImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentImageIndex(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentImageIndex
+                ? "bg-white scale-110"
+                : "bg-white/50 hover:bg-white/80"
+                }`}
+            />
+          ))}
+        </div>
       </section>
 
-      {/* Categories (unchanged) */}
+      {/* Categories */}
       <section className="py-12 md:py-20 bg-white">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="text-center mb-12">
@@ -169,16 +301,12 @@ const Home = () => {
               way.
             </p>
           </div>
-
-          {/* Mobile Layout */}
           <div className="block lg:hidden">
             <div className="grid grid-cols-1 gap-6">
               {categories.map((category) => (
                 <Link
                   key={category.name}
-                  to={`/products?category=${encodeURIComponent(
-                    category.name
-                  )}`}
+                  to={`/products?category=${encodeURIComponent(category.name)}`}
                   className="relative rounded-2xl overflow-hidden group h-64 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <img
@@ -200,8 +328,6 @@ const Home = () => {
               ))}
             </div>
           </div>
-
-          {/* Desktop Layout */}
           <div className="hidden lg:grid lg:grid-cols-5 gap-6">
             {categories.map((category) => (
               <Link
@@ -230,7 +356,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Products (dynamic from API) */}
+      {/* Featured Products */}
       <section className="py-12 md:py-20 bg-gray-50">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="text-center mb-12">
@@ -246,12 +372,14 @@ const Home = () => {
           {loading ? (
             <p className="text-center text-gray-600">Loading products...</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6">
               {featuredProducts.map((product) => (
                 <ProductCard
                   key={product._id}
                   product={product}
                   onAddToCart={handleAddToCart}
+                  onToggleWishlist={handleToggleWishlist}
+                  isWishlisted={isProductWishlisted(product._id)}
                 />
               ))}
             </div>
@@ -269,17 +397,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
           animation: fade-in 1s ease-out;

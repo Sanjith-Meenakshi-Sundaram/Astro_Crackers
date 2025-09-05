@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search as SearchIcon, Filter, ChevronDown } from 'lucide-react';
 import ProductsGrid from '../components/ProductsGrid';
-import { searchProducts } from '../services/productService';
-import { CATEGORIES, PRICE_RANGES } from '../utils/constants';
+import { searchProducts } from '../services/product.service';
+import { CATEGORIES, PRICE_RANGES } from '../utils/constant';
+
 
 const Search = () => {
   const location = useLocation();

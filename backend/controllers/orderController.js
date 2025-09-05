@@ -60,12 +60,11 @@ exports.createOrder = async (req, res) => {
 
     const savedOrder = await newOrder.save();
 
-    // *** THE FIX IS HERE ***
-    // We now pass the correct arguments to the email service.
+    // Send confirmation email
     await sendOrderConfirmationEmails({
       to: user.email,
-      user: user, // Pass the full user object
-      order: savedOrder, // Pass the saved order object
+      user: user,
+      order: savedOrder,
     });
 
     res.status(201).json({ message: 'Order created successfully!', order: savedOrder });
@@ -73,5 +72,62 @@ exports.createOrder = async (req, res) => {
   } catch (error) {
     console.error('Error creating order:', error);
     res.status(500).json({ message: 'Server error while creating order' });
+  }
+};
+
+// 📌 NEW: Fetch all orders for the logged-in user
+exports.getOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ message: 'No orders found for this user' });
+    }
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ message: 'Server error while fetching orders' });
+  }
+};
+// Get ALL orders (for admin)
+exports.getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({}).sort({ createdAt: -1 });
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error('Error fetching all orders:', error);
+    res.status(500).json({ message: 'Server error while fetching orders' });
+  }
+};
+
+// NEW: Update order status (admin only)
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    const validStatuses = ['pending', 'confirmed', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    order.status = status;
+    const updatedOrder = await order.save();
+
+    res.status(200).json({ 
+      message: 'Order status updated successfully', 
+      order: updatedOrder 
+    });
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid order ID' });
+    }
+    res.status(500).json({ message: 'Server error while updating order status' });
   }
 };

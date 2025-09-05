@@ -16,9 +16,12 @@ app.use(express.json());
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/products", require("./routes/product"));
 // app.use('/api/categories', require('./routes/categories'));
-// app.use('/api/cart', require('./routes/cart'));
+app.use('/api/featured', require("./routes/featured"));
+app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/owner", require("./routes/owner"));
+app.use("/api/wishlist", require("./routes/wishlistRoutes"));
+
 
 // Basic route
 app.get("/", (req, res) => {

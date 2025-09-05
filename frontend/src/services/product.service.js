@@ -1,54 +1,43 @@
+// src/services/productService.js
 import api from "./api"; // axios instance
 
-// Fetch all products
+// ✅ Fetch all products
 export const getAllProducts = async () => {
-  const res = await api.get("/products");
+  const res = await api.get("/api/products");
   return res.data; // backend returns array of products
 };
 
-// Search with filters applied in frontend
-export const searchProducts = async (query, filters) => {
-  const allProducts = await getAllProducts();
+// ✅ Search products via backend
+export const searchProducts = async (query, filters = {}) => {
+  try {
+    const params = new URLSearchParams();
 
-  let results = allProducts;
+    if (filters.category && filters.category !== "all") {
+      params.append("category", filters.category);
+    }
+    if (filters.priceRange) {
+      params.append("priceRange", filters.priceRange);
+    }
+    if (filters.sortBy) {
+      params.append("sortBy", filters.sortBy);
+    }
 
-  // 1. Filter by query (name + tags)
-  if (query) {
-    const lower = query.toLowerCase();
-    results = results.filter(
-      (p) =>
-        p.name.toLowerCase().includes(lower) ||
-        (p.tags && p.tags.some((t) => t.toLowerCase().includes(lower)))
+    // pagination (optional)
+    params.append("page", filters.page || 1);
+    params.append("limit", filters.limit || 20);
+
+    const res = await api.get(
+      `/api/products/search/${encodeURIComponent(query)}?${params.toString()}`
     );
-  }
 
-  // 2. Filter by category
-  if (filters.category && filters.category !== "all") {
-    results = results.filter((p) => p.category === filters.category);
+    return {
+      products: res.data.products || [],
+      total: res.data.pagination
+        ? res.data.pagination.totalProducts
+        : res.data.products?.length || 0,
+    };
+  } catch (err) {
+    console.error("Search service error:", err);
+    return { products: [], total: 0 };
   }
-
-  // 3. Filter by price range
-  if (filters.priceRange) {
-    const [min, max] = filters.priceRange.split("-").map(Number);
-    results = results.filter((p) => {
-      if (isNaN(max)) return p.price >= min; // "1000+" case
-      return p.price >= min && p.price <= max;
-    });
-  }
-
-  // 4. Sort
-  if (filters.sortBy === "priceLowHigh") {
-    results = results.sort((a, b) => a.price - b.price);
-  } else if (filters.sortBy === "priceHighLow") {
-    results = results.sort((a, b) => b.price - a.price);
-  } else if (filters.sortBy === "newest") {
-    results = results.sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    );
-  }
-
-  return {
-    products: results,
-    total: results.length,
-  };
 };

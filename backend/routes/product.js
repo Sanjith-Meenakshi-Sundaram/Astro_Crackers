@@ -9,14 +9,14 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const { category, search, page = 1, limit = 20 } = req.query;
-    
+
     let filter = { isActive: true };
-    
+
     // Category filter
     if (category && category !== 'all') {
       filter.category = new RegExp(category, 'i');
     }
-    
+
     // Search filter - case insensitive search in name, description, and tags
     if (search && search.trim()) {
       const searchRegex = new RegExp(search.trim(), 'i');
@@ -26,18 +26,18 @@ router.get('/', async (req, res) => {
         { tags: searchRegex }
       ];
     }
-    
+
     // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
+
     const products = await Product.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
-      
+
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / parseInt(limit));
-    
+
     res.json({
       products,
       pagination: {
@@ -61,21 +61,21 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    
+
     if (!product || !product.isActive) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    
+
     res.json(product);
-    
+
   } catch (error) {
     console.error('Single product fetch error:', error);
-    
+
     // Handle invalid ObjectId
     if (error.name === 'CastError') {
       return res.status(404).json({ message: 'Product not found' });
     }
-    
+
     res.status(500).json({ message: 'Server error fetching product' });
   }
 });
@@ -87,22 +87,22 @@ router.get('/category/:category', async (req, res) => {
   try {
     const { category } = req.params;
     const { page = 1, limit = 20 } = req.query;
-    
-    const filter = { 
+
+    const filter = {
       category: new RegExp(category, 'i'),
-      isActive: true 
+      isActive: true
     };
-    
+
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
+
     const products = await Product.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
-      
+
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / parseInt(limit));
-    
+
     res.json({
       products,
       category,
@@ -128,9 +128,9 @@ router.get('/search/:query', async (req, res) => {
   try {
     const { query } = req.params;
     const { page = 1, limit = 20, category } = req.query;
-    
+
     let filter = { isActive: true };
-    
+
     // Search filter
     const searchRegex = new RegExp(query, 'i');
     filter.$or = [
@@ -138,22 +138,22 @@ router.get('/search/:query', async (req, res) => {
       { description: searchRegex },
       { tags: searchRegex }
     ];
-    
+
     // Additional category filter if provided
     if (category && category !== 'all') {
       filter.category = new RegExp(category, 'i');
     }
-    
+
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
+
     const products = await Product.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
-      
+
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / parseInt(limit));
-    
+
     res.json({
       products,
       searchQuery: query,
