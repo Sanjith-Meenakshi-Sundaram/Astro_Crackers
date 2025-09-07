@@ -8,7 +8,7 @@ const router = express.Router();
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const { category, search, page = 1, limit = 20 } = req.query;
+    const { category, search, page = 1, limit = 1000 } = req.query;
 
     let filter = { isActive: true };
 

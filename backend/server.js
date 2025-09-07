@@ -21,6 +21,8 @@ app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/owner", require("./routes/owner"));
 app.use("/api/wishlist", require("./routes/wishlistRoutes"));
+app.use("/api/quick-order", require("./routes/quickOrder"));
+
 
 
 // Basic route

@@ -32,13 +32,29 @@ const OrdersPage = () => {
       });
 
       const orders = response.data.orders || response.data;
-      const latestOrder = Array.isArray(orders) ? orders[0] : orders;
 
+      // Check if orders exist and is not empty
+      if (!orders || (Array.isArray(orders) && orders.length === 0)) {
+        setOrder(null); // No orders found
+        setLoading(false);
+        return;
+      }
+
+      const latestOrder = Array.isArray(orders) ? orders[0] : orders;
       setOrder(latestOrder);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching orders:', err);
-      setError('Failed to load order details');
+
+      // Check if it's a 404 or similar "no orders" response
+      if (err.response?.status === 404 ||
+        err.response?.data?.message?.toLowerCase().includes('no orders') ||
+        err.response?.data?.message?.toLowerCase().includes('not found')) {
+        setOrder(null); // No orders found, not an error
+      } else {
+        setError('Failed to load order details');
+      }
+
       setLoading(false);
     }
   };

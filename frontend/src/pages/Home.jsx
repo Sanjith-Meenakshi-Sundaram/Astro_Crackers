@@ -3,6 +3,8 @@ import { ChevronRight, Star, Heart, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import "./Home.css";
+import ProductCardFeatured from "../components/ProductCardFeatured";
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 
@@ -66,11 +68,10 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Hero images that rotate every 5 seconds
+  // Hero images - replace with your actual image paths
   const heroImages = [
-    "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=2070&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=2070&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=2070&auto=format&fit=crop",
+    "/coverphoto2_astro.png", // Replace with your actual image path
+    "/coverphoto2_astro.png" // Replace with your actual image path  
   ];
 
   // Categories
@@ -78,32 +79,32 @@ const Home = () => {
     {
       name: "morning crackers",
       image:
-        "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=800&auto=format&fit=crop",
-      description: "Start your day with colorful celebrations",
+        "https://i.pinimg.com/736x/4f/1b/0e/4f1b0e729fe0ee0275eecc7368dc1df6.jpg",
+      description: "Begin your day with 1000-walas, Lakshmi crackers — best enjoyed in the early morning hours of Diwali.",
     },
     {
       name: "night crackers",
       image:
-        "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=800&auto=format&fit=crop",
-      description: "Illuminate the night sky",
+        "https://media.istockphoto.com/id/494984843/photo/festival-of-light-diwali.jpg?s=612x612&w=0&k=20&c=FGUKnjvQKhMHzxh-sJv6WxP0vPIBVgJ41GdUHsoO6DI=",
+      description: "Light up the night sky with dazzling Chakras, Flowerpots, and Rockets for grand celebrations.",
     },
     {
       name: "premium skyshots",
       image:
-        "https://images.unsplash.com/photo-1467810563316-b5476525c0f9?q=80&w=800&auto=format&fit=crop",
-      description: "Professional grade fireworks",
+        "https://cdn.dotpe.in/longtail/store-items/7873975/ZjDzmJZd.jpeg",
+      description: "Experience spectacular aerial shells and multi-shot fireworks",
     },
     {
       name: "kids special",
       image:
-        "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop",
-      description: "Safe and fun for little ones",
+        "https://img.freepik.com/premium-photo/kids-celebrate-diwali-with-crackers-road_349936-1006.jpg",
+      description: "Fun and safe options like Sparklers, Ground Spinners, and Pencil crackers designed especially for children.",
     },
     {
       name: "gift boxes",
       image:
-        "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=800&auto=format&fit=crop",
-      description: "Perfect for special occasions",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRq6V6RruidXmJ_Fbvb2idI1Bv7nQ9f2A-OIg&s",
+      description: "Beautifully packed assortments of all-time favorite crackers — perfect for gifting during Diwali and festivals.",
     },
   ];
 
@@ -111,7 +112,7 @@ const Home = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -238,43 +239,48 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="relative h-[50vh] sm:h-[55vh] lg:h-[60vh] overflow-hidden">
+      {/* Hero Section with Red Background Fix */}
+      <section className="relative w-full lg:h-[60vh] h-[134px] overflow-hidden">
+
+        {/* Fireworks Background */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
+          style={{
+            backgroundImage: `url('https://static.vecteezy.com/system/resources/previews/038/466/539/non_2x/vibrant-red-fireworks-illuminating-the-night-sky-in-a-celebratory-burst-of-golden-explosions-perfect-for-chinese-new-year-vector.jpg')`,
+          }}
+        />
+
+        {/* Transparent dark overlay (keeps fireworks visible) */}
+        <div className="absolute inset-0 bg-black/10 z-10"></div>
+
+        {/* Hero Images Carousel (on top of overlay) */}
         {heroImages.map((image, index) => (
           <div
             key={index}
             className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ${index === currentImageIndex ? "opacity-100" : "opacity-0"
               }`}
             style={{
-              backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('${image}')`,
+              backgroundImage: `url('${image}')`,
             }}
           />
         ))}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70"></div>
-        <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-4 max-w-4xl mx-auto">
-          <div className="space-y-4 animate-fade-in">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-              <span className="block">STAY WARM,</span>
-              <span className="block text-red-400">LOOK COOL</span>
-            </h1>
-            <p className="text-base sm:text-lg lg:text-xl max-w-3xl leading-relaxed opacity-90">
-              Light up your celebrations with the finest selection of crackers
-              from Sivakasi.
-              <span className="block mt-2">
-                Safe, spectacular, and delivered with care.
-              </span>
-            </p>
-            <div className="flex justify-center mt-6">
-              <Link
-                to="/products"
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full text-base transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
-              >
-                Discover Collection
-              </Link>
-            </div>
+
+        {/* Quick Order Button */}
+        <Link
+          to="/quickorder"
+          className="absolute bottom-0 right-0 z-30 transition-all duration-300 transform hover:scale-110 hover:drop-shadow-xl"
+        >
+          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-white flex items-center justify-center animate-shake">
+            <img
+              src="/quickorder2.png"
+              alt="Quick Order"
+              className="h-full w-full object-cover transition-all duration-300 cursor-pointer hover:brightness-110"
+            />
           </div>
-        </div>
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+        </Link>
+
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
           {heroImages.map((_, index) => (
             <button
               key={index}
@@ -288,26 +294,62 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="py-12 md:py-20 bg-white">
+      {/* Hero Content Section - Slim Version */}
+      <section className="py-4 bg-white">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
-              NEW COLLECTIONS
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-              Browse through our curated selection of crackers, gift boxes, and
-              more to ensure you're ready for whatever celebration comes your
-              way.
-            </p>
+          <div className="relative rounded-xl overflow-hidden group h-16 md:h-20 shadow-md hover:shadow-lg transition-all duration-300 border border-red-500">
+            {/* Background with gradient overlay */}
+            <div
+              className="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105"
+              style={{
+                backgroundImage: `linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(185, 28, 28, 0.8)), url('https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=1200&auto=format&fit=crop')`
+              }}
+            />
+
+            {/* Content overlay */}
+            <div className="absolute inset-0 flex items-center justify-between px-4 md:px-8">
+              <div className="text-white">
+                <h1 className="text-base md:text-lg font-bold leading-snug">
+                  SIVAKASI CRACKERS
+                </h1>
+                <p className="text-white/90 text-[11px] md:text-sm leading-snug">
+                  Safe • Spectacular • Delivered with care
+                </p>
+              </div>
+
+              <div className="hidden md:block">
+                <Link
+                  to="/products"
+                  className="bg-white text-red-600 hover:bg-gray-100 font-semibold py-1.5 px-4 rounded-md text-xs transition-all duration-300 transform hover:scale-105 hover:shadow-md whitespace-nowrap"
+                >
+                  Show all
+                </Link>
+              </div>
+            </div>
+
+            {/* Mobile button */}
+            <div className="md:hidden absolute bottom-1 right-2">
+              <Link
+                to="/products"
+                className="bg-white text-red-600 hover:bg-gray-100 font-semibold py-1 px-3 rounded text-[10px] transition-all duration-300 transform hover:scale-105 whitespace-nowrap"
+              >
+                Show all
+              </Link>
+            </div>
           </div>
+        </div>
+      </section>
+
+      {/* Categories Content */}
+      <section className="bg-white">
+        <div className="container mx-auto px-4 max-w-7xl">
           <div className="block lg:hidden">
             <div className="grid grid-cols-1 gap-6">
               {categories.map((category) => (
                 <Link
                   key={category.name}
                   to={`/products?category=${encodeURIComponent(category.name)}`}
-                  className="relative rounded-2xl overflow-hidden group h-64 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="relative rounded-2xl overflow-hidden group h-64 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-red-500"
                 >
                   <img
                     src={category.image}
@@ -333,7 +375,7 @@ const Home = () => {
               <Link
                 key={category.name}
                 to={`/products?category=${encodeURIComponent(category.name)}`}
-                className="relative rounded-2xl overflow-hidden group h-80 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="relative rounded-2xl overflow-hidden group h-80 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-red-500"
               >
                 <img
                   src={category.image}
@@ -357,16 +399,25 @@ const Home = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-12 md:py-20 bg-gray-50">
+      <section className="py-12 md:py-16 bg-gray-50">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
-              Featured Products
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Discover our most popular crackers, handpicked for their quality
-              and spectacular displays.
-            </p>
+          <div class="text-center mb-4">
+            <div class="relative inline-block px-3 py-1.5 border-2 border-red-600 rounded-lg bg-gradient-to-r from-white via-red-50 to-white shadow-md animate-pulse-slow">
+
+              <span class="absolute top-0 left-0 w-1.5 h-1.5 bg-red-600 rounded-br-md"></span>
+              <span class="absolute top-0 right-0 w-1.5 h-1.5 bg-red-600 rounded-bl-md"></span>
+              <span class="absolute bottom-0 left-0 w-1.5 h-1.5 bg-red-600 rounded-tr-md"></span>
+              <span class="absolute bottom-0 right-0 w-1.5 h-1.5 bg-red-600 rounded-tl-md"></span>
+
+              <h2 class="text-xl font-extrabold text-red-600 tracking-normal mb-0.5 animate-fade-in">
+                Featured Products
+              </h2>
+
+              <p class="text-gray-600 text-[9px] font-medium leading-tight animate-slide-up">
+                Discover our most popular crackers, handpicked for quality.
+              </p>
+
+            </div>
           </div>
 
           {loading ? (
@@ -374,7 +425,7 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6">
               {featuredProducts.map((product) => (
-                <ProductCard
+                <ProductCardFeatured
                   key={product._id}
                   product={product}
                   onAddToCart={handleAddToCart}
@@ -385,7 +436,7 @@ const Home = () => {
             </div>
           )}
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-10">
             <Link
               to="/products"
               className="inline-flex items-center font-semibold text-red-600 hover:text-red-800 transition-colors text-lg group"

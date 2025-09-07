@@ -1,0 +1,13 @@
+.btn14 { background: repeating-linear-gradient( 45deg, #f7971e, #f7971e 10px, #ffd200 10px, #ffd200 20px ); background-size: 40px 40px; animation: stripes 4s linear infinite; } @keyframes stripes { 0% { background-position: 0 0; } 100% { background-position: 40px 40px; } } .btn14:hover { transform: scale(1.05); }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+.animate-shake {
+  animation: shake 1s ease-in-out infinite;
+}

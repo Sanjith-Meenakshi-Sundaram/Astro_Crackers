@@ -151,20 +151,7 @@ const AdminNavbar = () => {
                       {user?.email || "admin@example.com"}
                     </p>
                   </div>
-                  <Link
-                    to="/admin/profile"
-                    className="block px-3 py-1.5 text-sm text-gray-800 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    to="/admin/settings"
-                    className="block px-3 py-1.5 text-sm text-gray-800 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                  >
-                    Settings
-                  </Link>
+                  
                 </div>
               </div>
             </div>

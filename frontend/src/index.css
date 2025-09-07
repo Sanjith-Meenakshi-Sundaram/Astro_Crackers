@@ -1,5 +1,4 @@
 @import "tailwindcss";
-
 /* Custom Theme (Tailwind v4 way) */
 @theme {
   --color-red-600: #dc2626;
@@ -31,3 +30,4 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-red-700);
 }
+

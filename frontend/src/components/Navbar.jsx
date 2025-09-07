@@ -18,9 +18,9 @@ const Navbar = () => {
   // Rotating promotional texts
   const promotionalTexts = [
     "All crackers in our shop are premium quality and sourced directly from factory - Best prices guaranteed!",
-    "Direct factory sourcing means 40-60% cheaper prices on all crackers!",
+    "Direct factory sourcing means 40-80% cheaper prices on all crackers!",
     "Quality crackers at wholesale prices - No middleman, maximum savings!",
-    "Fresh stock daily from factory to your doorstep - Unbeatable quality & price!"
+    "Unbeatable quality & price!"
   ];
 
   // Auto-rotate promotional text
@@ -48,8 +48,8 @@ const Navbar = () => {
   // Handle contact actions
   const handlePhoneCall = (e) => {
     e.preventDefault();
-    const phoneNumber = '+918300372046';
-    window.location.href = `tel:${phoneNumber}`;
+    const phoneNumber = '8300372046';
+    window.open(`tel:+91${phoneNumber}`, '_self');
   };
 
   const handleEmail = (e) => {
@@ -58,7 +58,7 @@ const Navbar = () => {
     const subject = 'Inquiry about Crackers';
     const body = 'Hello, I would like to know more about your products.';
     const mailtoLink = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoLink;
+    window.open(mailtoLink, '_self');
   };
 
   // Handle search query
@@ -147,7 +147,7 @@ const Navbar = () => {
         </div>
 
         {/* Decorative elements */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse opacity-30"></div>
+
       </div>
 
       {/* Main Navbar */}
@@ -157,10 +157,12 @@ const Navbar = () => {
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center space-x-2" onClick={closeAllMenus}>
-                <div className="w-8 h-8 bg-red-600 rounded-md flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">AC</span>
-                </div>
-                <span className="text-lg font-bold text-gray-800 hidden sm:block">
+                <img
+                  src="/logo_astro.png"
+                  alt="Astro Crackers Logo"
+                  className="w-8 h-8 object-contain"
+                />
+                <span className="text-lg font-bold text-red-600 block">
                   Astro Crackers
                 </span>
               </Link>
@@ -355,6 +357,21 @@ const Navbar = () => {
                 </Link>
               )}
 
+              {/* Cart for mobile */}
+              <Link
+                to="/cart"
+                className="relative p-1.5 text-gray-600 hover:text-red-600 transition-colors"
+                onClick={closeAllMenus}
+              >
+                <ShoppingCart size={18} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full 
+                                   h-3 w-3 flex items-center justify-center animate-pulse text-[10px]">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+
               {/* Search Toggle */}
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
@@ -465,6 +482,75 @@ const Navbar = () => {
           )}
         </div>
       </nav>
+
+      {/* Red Navigation Section */}
+      <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 shadow-sm">
+        <div className="max-w-7xl mx-auto">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center justify-center space-x-8 py-2">
+            <Link
+              to="/"
+              className="text-white hover:text-yellow-300 font-medium text-sm transition-colors duration-200 px-2 py-1 rounded hover:bg-white/10"
+              onClick={closeAllMenus}
+            >
+              HOME
+            </Link>
+            <Link
+              to="/about"
+              className="text-white hover:text-yellow-300 font-medium text-sm transition-colors duration-200 px-2 py-1 rounded hover:bg-white/10"
+              onClick={closeAllMenus}
+            >
+              ABOUT
+            </Link>
+            <Link
+              to="/quickorder"
+              className="text-white hover:text-yellow-300 font-medium text-sm transition-colors duration-200 px-2 py-1 rounded hover:bg-white/10"
+              onClick={closeAllMenus}
+            >
+              QUICK ORDER
+            </Link>
+            <Link
+              to="/contact"
+              className="text-white hover:text-yellow-300 font-medium text-sm transition-colors duration-200 px-2 py-1 rounded hover:bg-white/10"
+              onClick={closeAllMenus}
+            >
+              CONTACT US
+            </Link>
+          </div>
+
+          {/* Mobile Navigation */}
+          <div className="md:hidden flex items-center justify-center space-x-4 py-1.5 px-4">
+            <Link
+              to="/"
+              className="text-white hover:text-yellow-300 font-medium text-xs transition-colors duration-200 px-1.5 py-0.5 rounded hover:bg-white/10"
+              onClick={closeAllMenus}
+            >
+              HOME
+            </Link>
+            <Link
+              to="/about"
+              className="text-white hover:text-yellow-300 font-medium text-xs transition-colors duration-200 px-1.5 py-0.5 rounded hover:bg-white/10"
+              onClick={closeAllMenus}
+            >
+              ABOUT
+            </Link>
+            <Link
+              to="/quickorder"
+              className="text-white hover:text-yellow-300 font-medium text-xs transition-colors duration-200 px-1.5 py-0.5 rounded hover:bg-white/10"
+              onClick={closeAllMenus}
+            >
+              QUICK ORDER
+            </Link>
+            <Link
+              to="/contact"
+              className="text-white hover:text-yellow-300 font-medium text-xs transition-colors duration-200 px-1.5 py-0.5 rounded hover:bg-white/10"
+              onClick={closeAllMenus}
+            >
+              CONTACT US
+            </Link>
+          </div>
+        </div>
+      </div>
 
       {/* Add custom animations */}
       <style jsx>{`

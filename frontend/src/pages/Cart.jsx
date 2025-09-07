@@ -42,7 +42,19 @@ const CartPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setCartItems(response.data.items || []);
+      const items = response.data.items || [];
+
+      // Filter out items with null/undefined products and clean up invalid items
+      const validItems = items.filter(item => item && item.product && item.product._id);
+      const invalidItems = items.filter(item => !item || !item.product || !item.product._id);
+
+      // If there are invalid items, remove them from backend
+      if (invalidItems.length > 0) {
+        console.log('Found invalid cart items, cleaning up...');
+        await cleanupInvalidItems(invalidItems);
+      }
+
+      setCartItems(validItems);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching cart:', err);
@@ -51,10 +63,25 @@ const CartPage = () => {
     }
   };
 
+  // Clean up invalid cart items from backend
+  const cleanupInvalidItems = async (invalidItems) => {
+    try {
+      for (const item of invalidItems) {
+        if (item && item._id) {
+          await axios.delete(`${API_URL}/api/cart/${item._id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error cleaning up invalid items:', err);
+    }
+  };
+
   // Update quantity
   const updateQuantity = async (productId, newQuantity) => {
     if (newQuantity <= 0) return;
-    
+
     setUpdatingItemId(productId);
     try {
       await axios.put(
@@ -65,10 +92,10 @@ const CartPage = () => {
 
       setCartItems(items =>
         items.map(item =>
-          item.product._id === productId
+          item.product && item.product._id === productId
             ? { ...item, quantity: newQuantity }
             : item
-        )
+        ).filter(item => item.product && item.product._id) // Additional safety filter
       );
     } catch (err) {
       console.error('Error updating quantity:', err);
@@ -85,7 +112,9 @@ const CartPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setCartItems(items => items.filter(item => item.product._id !== productId));
+      setCartItems(items => items.filter(item =>
+        item.product && item.product._id !== productId
+      ));
     } catch (err) {
       console.error('Error removing item:', err);
       alert('Failed to remove item from cart');
@@ -116,7 +145,7 @@ const CartPage = () => {
     if (!address.pincode.trim()) errors.pincode = 'Pincode is required';
     if (!phone.trim()) errors.phone = 'Phone number is required';
     if (phone.trim() && phone.trim().length < 10) errors.phone = 'Phone number must be at least 10 digits';
-    
+
     setAddressErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -133,8 +162,11 @@ const CartPage = () => {
   const placeOrder = async () => {
     setPlacing(true);
     try {
+      // Filter valid items again before placing order
+      const validCartItems = cartItems.filter(item => item.product && item.product._id && item.product.name && item.product.price);
+
       const orderData = {
-        cartItems: cartItems.map(item => ({
+        cartItems: validCartItems.map(item => ({
           productId: item.product._id,
           name: item.product.name,
           price: item.product.price,
@@ -153,27 +185,45 @@ const CartPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Clear cart after successful order
-      await Promise.all(
-        cartItems.map(item => 
-          axios.delete(`${API_URL}/api/cart/${item.product._id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        )
-      );
+      // Try to clear cart after successful order, but don't fail if it errors
+      try {
+        await Promise.all(
+          validCartItems.map(item =>
+            axios.delete(`${API_URL}/api/cart/${item.product._id}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            }).catch(err => {
+              console.log('Cart item cleanup failed for:', item.product._id, err.response?.status);
+              // Don't throw, just log the error
+            })
+          )
+        );
+      } catch (cartClearError) {
+        console.log('Some cart items could not be cleared, but order was successful');
+      }
 
+      // Show success message and navigate
+      alert('Order placed successfully! ✅');
       navigate('/orders');
     } catch (err) {
       console.error('Error placing order:', err);
-      alert('Failed to place order. Please try again.');
+      if (err.response?.status === 500 && err.message.includes('Request failed')) {
+        alert('Order might have been placed successfully. Please check your orders page.');
+      } else {
+        alert('Failed to place order. Please try again.');
+      }
     } finally {
       setPlacing(false);
       setShowConfirmation(false);
     }
   };
 
-  // Calculate totals
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  // Filter valid items for calculations
+  const validCartItems = cartItems.filter(item =>
+    item && item.product && item.product._id && typeof item.product.price === 'number' && item.quantity
+  );
+
+  // Calculate totals with null checks
+  const subtotal = validCartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const shipping = subtotal > 500 ? 0 : 50;
   const total = subtotal + shipping;
 
@@ -205,7 +255,7 @@ const CartPage = () => {
     );
   }
 
-  if (cartItems.length === 0) {
+  if (validCartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -244,14 +294,14 @@ const CartPage = () => {
               <ArrowLeft size={20} className="text-gray-600" />
             </Link>
             <h1 className="text-xl font-semibold text-gray-800">
-              My Cart ({cartItems.length})
+              My Cart ({validCartItems.length})
             </h1>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-3">
-              {cartItems.map((item) => (
+              {validCartItems.map((item) => (
                 <div key={item.product._id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                   <div className="flex gap-4">
                     {/* Product Image */}
@@ -259,7 +309,7 @@ const CartPage = () => {
                       <Link to={`/products/${item.product._id}`}>
                         <img
                           src={item.product.images?.[0] || "https://placehold.co/80x80/e5e7eb/6b7280?text=No+Image"}
-                          alt={item.product.name}
+                          alt={item.product.name || "Product"}
                           className="w-16 h-16 object-cover rounded-lg hover:opacity-75 transition-opacity"
                         />
                       </Link>
@@ -268,11 +318,11 @@ const CartPage = () => {
                     {/* Product Details */}
                     <div className="flex-grow min-w-0">
                       <div className="flex justify-between items-start mb-2">
-                        <Link 
+                        <Link
                           to={`/products/${item.product._id}`}
                           className="text-sm font-medium text-gray-800 hover:text-blue-600 transition-colors line-clamp-2 pr-2"
                         >
-                          {item.product.name}
+                          {item.product.name || "Unknown Product"}
                         </Link>
                         <button
                           onClick={() => removeFromCart(item.product._id)}
@@ -283,7 +333,7 @@ const CartPage = () => {
                         </button>
                       </div>
 
-                      <p className="text-lg font-semibold text-gray-900 mb-3">₹{item.product.price}</p>
+                      <p className="text-lg font-semibold text-gray-900 mb-3">₹{item.product.price || 0}</p>
 
                       {/* Actions */}
                       <div className="flex items-center justify-between">
@@ -333,7 +383,7 @@ const CartPage = () => {
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Price ({cartItems.length} items)</span>
+                    <span className="text-gray-600">Price ({validCartItems.length} items)</span>
                     <span>₹{subtotal}</span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -358,7 +408,7 @@ const CartPage = () => {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={() => setShowAddressForm(true)}
                   className="w-full bg-orange-500 text-white py-2.5 rounded text-sm font-medium hover:bg-orange-600 transition-colors mb-3"
                 >
@@ -385,14 +435,14 @@ const CartPage = () => {
               <MapPin size={24} className="text-blue-600 mr-2" />
               <h3 className="text-lg font-semibold text-gray-800">Delivery Address</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
                 <input
                   type="text"
                   value={address.street}
-                  onChange={(e) => setAddress({...address, street: e.target.value})}
+                  onChange={(e) => setAddress({ ...address, street: e.target.value })}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${addressErrors.street ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="House no, Building, Street"
                 />
@@ -405,7 +455,7 @@ const CartPage = () => {
                   <input
                     type="text"
                     value={address.city}
-                    onChange={(e) => setAddress({...address, city: e.target.value})}
+                    onChange={(e) => setAddress({ ...address, city: e.target.value })}
                     className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${addressErrors.city ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="City"
                   />
@@ -417,7 +467,7 @@ const CartPage = () => {
                   <input
                     type="text"
                     value={address.state}
-                    onChange={(e) => setAddress({...address, state: e.target.value})}
+                    onChange={(e) => setAddress({ ...address, state: e.target.value })}
                     className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${addressErrors.state ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="State"
                   />
@@ -430,7 +480,7 @@ const CartPage = () => {
                 <input
                   type="text"
                   value={address.pincode}
-                  onChange={(e) => setAddress({...address, pincode: e.target.value})}
+                  onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${addressErrors.pincode ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Pincode"
                 />
@@ -449,7 +499,7 @@ const CartPage = () => {
                 {addressErrors.phone && <p className="text-red-500 text-xs mt-1">{addressErrors.phone}</p>}
               </div>
             </div>
-            
+
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowAddressForm(false)}
@@ -478,7 +528,7 @@ const CartPage = () => {
               <p className="text-sm text-gray-600 mb-4">
                 Our team will call you to confirm your order details and delivery.
               </p>
-              
+
               {/* Address Summary */}
               <div className="bg-gray-50 rounded-lg p-3 text-left text-xs">
                 <p className="font-medium text-gray-800 mb-1">Delivery Address:</p>
@@ -489,7 +539,7 @@ const CartPage = () => {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirmation(false)}

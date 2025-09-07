@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { setupGlobalToast } from './utils/globalAlert';
+
 import Home from "./pages/Home";
 import Orders from "./pages/Orders";
 import BottomNavigation from "./components/BottomNavigation";
@@ -22,10 +26,26 @@ import CategoryPage from "./admin_pages/CategoryPage";
 import AllProductsPage from "./admin_pages/products";
 import FeaturedProductsPage from "./admin_pages/featured";
 import CustomerOrdersPage from "./admin_pages/orders";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import QuickOrder from "./pages/QuickOrder";
+// import Toast from "./components/Toast";
+
+// import ToastProvider from "./components/ToastProvider";
 
 export default function App() {
   const location = useLocation();
-  
+
+  // Setup global toast override on app startup
+  useEffect(() => {
+    const restoreAlert = setupGlobalToast();
+
+    // Cleanup on unmount (optional)
+    return () => {
+      restoreAlert();
+    };
+  }, []);
+
   // Check if current route is admin route (except admin login)
   const isAdminRoute = location.pathname.startsWith('/admin') && location.pathname !== '/admin-login';
 
@@ -33,7 +53,7 @@ export default function App() {
     <div className="min-h-screen flex flex-col">
       {/* Render Admin Navbar for admin routes, Regular Navbar for others */}
       {isAdminRoute ? <AdminNavbar /> : <Navbar />}
-      
+
       {/* Add top padding when admin navbar is showing */}
       <main className={`flex-1 container mx-auto px-4 py-6 ${isAdminRoute ? 'pt-20' : ''}`}>
         <Routes>
@@ -55,7 +75,12 @@ export default function App() {
           <Route path="/admin/products" element={<AllProductsPage />} />
           <Route path="/admin/featured" element={<FeaturedProductsPage />} />
           <Route path="/admin/orders" element={<CustomerOrdersPage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/quickorder" element={<QuickOrder />} />
+
         </Routes>
+        {/* <ToastProvider/> */}
       </main>
 
       {/* WhatsApp Widget - Hide on admin routes */}
@@ -63,6 +88,34 @@ export default function App() {
 
       {/* Bottom Navigation - Hide on admin routes */}
       {!isAdminRoute && <BottomNavigation />}
+
+      {/* Toast Container - Add this at the end */}
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        style={{
+          fontSize: '11px',         // smaller text
+          fontFamily: 'inherit',
+          zIndex: 9999,
+          width: '220px',           // compact width
+          minHeight: '32px',        // reduce height
+        }}
+        toastStyle={{
+          borderRadius: '6px',
+          padding: '6px 10px',      // tighter padding
+          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+          minHeight: '32px',
+          lineHeight: '1.2',
+        }}
+      />
     </div>
   );
 }

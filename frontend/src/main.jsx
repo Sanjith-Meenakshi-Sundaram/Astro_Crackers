@@ -5,6 +5,8 @@ import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import "./index.css";
+import 'react-toastify/dist/ReactToastify.css';
+
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

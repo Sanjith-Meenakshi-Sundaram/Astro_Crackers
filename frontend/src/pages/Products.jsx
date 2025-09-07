@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { getAllProducts } from "../services/product.service";
 import ProductCard from "../components/ProductCard";
 
@@ -39,9 +40,18 @@ export default function Products() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+            {/* Back button */}
+            <Link 
+                to="/" 
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6 transition-colors"
+            >
+                <ArrowLeft size={16} />
+                <span className="text-sm">Back</span>
+            </Link>
+
+            {/* <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
                 {category ? `${category} Crackers` : "All Products"}
-            </h1>
+            </h1> */}
 
             {loading && (
                 <div className="flex justify-center py-10">
