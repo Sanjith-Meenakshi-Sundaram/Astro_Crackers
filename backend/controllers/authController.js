@@ -211,7 +211,7 @@ exports.forgotPassword = async (req, res) => {
     await user.save();
 
     // Create reset URL
-    const resetURL = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+    const resetURL = `${process.env.CLIENT_URL || 'https://astro-crackers-sivakasi.vercel.app'}/reset-password/${resetToken}`;
 
     // Send email
     const emailResult = await sendPasswordResetEmail(user.email, resetURL);

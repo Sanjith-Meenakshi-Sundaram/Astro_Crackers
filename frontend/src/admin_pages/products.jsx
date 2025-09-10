@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 // ProductForm component moved outside to prevent re-creation on every render
-const ProductForm = ({ 
-  isEdit = false, 
-  formData, 
-  handleInputChange, 
-  handleArrayChange, 
-  addArrayItem, 
-  removeArrayItem, 
-  handleFormSubmit, 
-  submitLoading, 
-  setShowAddModal, 
-  setShowEditModal, 
-  resetForm 
+const ProductForm = ({
+  isEdit = false,
+  formData,
+  handleInputChange,
+  handleArrayChange,
+  addArrayItem,
+  removeArrayItem,
+  handleFormSubmit,
+  submitLoading,
+  setShowAddModal,
+  setShowEditModal,
+  resetForm
 }) => (
   <div className="max-h-80 overflow-y-auto">
     {/* Wrap everything in a real form */}
@@ -72,15 +72,20 @@ const ProductForm = ({
         <label className="block text-xs font-medium text-gray-700 mb-1">
           Category *
         </label>
-        <input
-          type="text"
+        <select
           name="category"
           className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
           value={formData.category}
           onChange={handleInputChange}
-          placeholder="e.g., Electronics, Clothing"
           required
-        />
+        >
+          <option value="">-- Select Category --</option>
+          <option value="morning crackers">morning crackers</option>
+          <option value="night crackers">night crackers</option>
+          <option value="premium skyshots">premium skyshots</option>
+          <option value="kids special">kids special</option>
+          <option value="gift boxes">gift boxes</option>
+        </select>
       </div>
 
       <div>
@@ -658,8 +663,8 @@ const AdminProducts = () => {
                 </button>
               </div>
               <div className="p-4">
-                <ProductForm 
-                  isEdit={showEditModal} 
+                <ProductForm
+                  isEdit={showEditModal}
                   formData={formData}
                   handleInputChange={handleInputChange}
                   handleArrayChange={handleArrayChange}
