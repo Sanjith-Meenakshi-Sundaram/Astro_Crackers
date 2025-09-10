@@ -43,7 +43,7 @@ const QuickOrder = () => {
         const productsByCategory = {};
         
         for (const category of categoryNames) {
-          const response = await fetch(`http://localhost:5000/api/products/category/${encodeURIComponent(category)}`);
+          const response = await fetch(`https://astro-crackers.onrender.com/api/products/category/${encodeURIComponent(category)}`);
           if (response.ok) {
             const data = await response.json();
             productsByCategory[category] = data.products || [];
@@ -154,7 +154,7 @@ const QuickOrder = () => {
       };
 
       // Send order email (you'll need to implement this endpoint)
-      const response = await fetch('http://localhost:5000/api/quick-order/send-confirmation', {
+      const response = await fetch('https://astro-crackers.onrender.com/api/quick-order/send-confirmation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

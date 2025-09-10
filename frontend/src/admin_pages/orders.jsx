@@ -23,10 +23,10 @@ const AdminOrdersPage = () => {
         throw new Error('No token found - please login again');
       }
 
-      console.log('Making request to:', 'http://localhost:5000/api/orders/admin');
+      console.log('Making request to:', 'https://astro-crackers.onrender.com/api/orders/admin');
       console.log('Authorization header:', `Bearer ${token}`);
 
-      const response = await fetch('http://localhost:5000/api/orders/admin', {
+      const response = await fetch('https://astro-crackers.onrender.com/api/orders/admin', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -86,7 +86,7 @@ const AdminOrdersPage = () => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const response = await fetch(`https://astro-crackers.onrender.com/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
