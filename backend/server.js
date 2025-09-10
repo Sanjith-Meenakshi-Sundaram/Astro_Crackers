@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'], // Add your frontend URLs
+  origin: ['http://localhost:5000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173','https://astro-crackers.onrender.com'], // Add your frontend URLs
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
