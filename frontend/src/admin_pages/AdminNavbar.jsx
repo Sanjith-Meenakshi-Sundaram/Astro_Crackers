@@ -11,10 +11,10 @@ const AdminNavbar = () => {
 
   // Rotating promotional texts
   const promotionalTexts = [
-    "Admin Dashboard - Manage products, orders, and users efficiently.",
-    "Track sales and analytics in real-time with powerful tools.",
-    "Secure and reliable control panel for your cracker shop.",
-    "Easily add, edit, and remove products with just a few clicks."
+    "All crackers in our shop are premium quality and sourced directly from factory - Best prices guaranteed!.",
+    "Direct factory sourcing means 40-80% cheaper prices on all crackers!",
+    "Quality crackers at wholesale prices - No middleman, maximum savings!",
+    "Unbeatable quality & price!"
   ];
 
   // Auto-rotate promotional text

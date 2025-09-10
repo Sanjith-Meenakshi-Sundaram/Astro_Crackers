@@ -29,6 +29,8 @@ import CustomerOrdersPage from "./admin_pages/orders";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import QuickOrder from "./pages/QuickOrder";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 // import Toast from "./components/Toast";
 
 // import ToastProvider from "./components/ToastProvider";
@@ -78,6 +80,9 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/quickorder" element={<QuickOrder />} />
+
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         </Routes>
         {/* <ToastProvider/> */}

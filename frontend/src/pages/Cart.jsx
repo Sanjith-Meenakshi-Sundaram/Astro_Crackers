@@ -25,6 +25,21 @@ const CartPage = () => {
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
+  // Price calculation helper function
+  const calculatePrices = (product) => {
+    const sellingPrice = product.price;
+    const discount = product.discount || 80; // Default 80% or from backend
+    const originalPrice = Math.round((sellingPrice * 100) / (100 - discount));
+    const discountPercentage = Math.round(((originalPrice - sellingPrice) / originalPrice) * 100);
+    
+    return {
+      sellingPrice,
+      originalPrice,
+      discountPercentage,
+      savings: originalPrice - sellingPrice
+    };
+  };
+
   // Fetch cart items
   useEffect(() => {
     fetchCartItems();
@@ -187,17 +202,12 @@ const CartPage = () => {
 
       // Try to clear cart after successful order, but don't fail if it errors
       try {
-        await Promise.all(
-          validCartItems.map(item =>
-            axios.delete(`${API_URL}/api/cart/${item.product._id}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            }).catch(err => {
-              console.log('Cart item cleanup failed for:', item.product._id, err.response?.status);
-              // Don't throw, just log the error
-            })
-          )
-        );
-      } catch (cartClearError) {
+        await axios.delete(`${API_URL}/api/cart/clear`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        // console.log('Cart cleared successfully');
+      }
+      catch (cartClearError) {
         console.log('Some cart items could not be cleared, but order was successful');
       }
 
@@ -222,10 +232,14 @@ const CartPage = () => {
     item && item.product && item.product._id && typeof item.product.price === 'number' && item.quantity
   );
 
-  // Calculate totals with null checks
+  // Calculate totals with new pricing logic
   const subtotal = validCartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  const shipping = subtotal > 500 ? 0 : 50;
-  const total = subtotal + shipping;
+  const totalOriginalPrice = validCartItems.reduce((sum, item) => {
+    const prices = calculatePrices(item.product);
+    return sum + (prices.originalPrice * item.quantity);
+  }, 0);
+  const totalSavings = totalOriginalPrice - subtotal;
+  const total = subtotal; // No delivery charges
 
   if (loading) {
     return (
@@ -301,79 +315,96 @@ const CartPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-3">
-              {validCartItems.map((item) => (
-                <div key={item.product._id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="flex gap-4">
-                    {/* Product Image */}
-                    <div className="flex-shrink-0">
-                      <Link to={`/products/${item.product._id}`}>
-                        <img
-                          src={item.product.images?.[0] || "https://placehold.co/80x80/e5e7eb/6b7280?text=No+Image"}
-                          alt={item.product.name || "Product"}
-                          className="w-16 h-16 object-cover rounded-lg hover:opacity-75 transition-opacity"
-                        />
-                      </Link>
-                    </div>
-
-                    {/* Product Details */}
-                    <div className="flex-grow min-w-0">
-                      <div className="flex justify-between items-start mb-2">
-                        <Link
-                          to={`/products/${item.product._id}`}
-                          className="text-sm font-medium text-gray-800 hover:text-blue-600 transition-colors line-clamp-2 pr-2"
-                        >
-                          {item.product.name || "Unknown Product"}
+              {validCartItems.map((item) => {
+                const prices = calculatePrices(item.product);
+                
+                return (
+                  <div key={item.product._id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                    <div className="flex gap-4">
+                      {/* Product Image */}
+                      <div className="flex-shrink-0">
+                        <Link to={`/products/${item.product._id}`}>
+                          <img
+                            src={item.product.images?.[0] || "https://placehold.co/80x80/e5e7eb/6b7280?text=No+Image"}
+                            alt={item.product.name || "Product"}
+                            className="w-16 h-16 object-cover rounded-lg hover:opacity-75 transition-opacity"
+                          />
                         </Link>
-                        <button
-                          onClick={() => removeFromCart(item.product._id)}
-                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                          title="Remove"
-                        >
-                          <Trash2 size={16} />
-                        </button>
                       </div>
 
-                      <p className="text-lg font-semibold text-gray-900 mb-3">₹{item.product.price || 0}</p>
-
-                      {/* Actions */}
-                      <div className="flex items-center justify-between">
-                        {/* Quantity Controls */}
-                        <div className="flex items-center border border-gray-200 rounded">
-                          <button
-                            onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
-                            disabled={item.quantity <= 1 || updatingItemId === item.product._id}
-                            className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      {/* Product Details */}
+                      <div className="flex-grow min-w-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <Link
+                            to={`/products/${item.product._id}`}
+                            className="text-sm font-medium text-gray-800 hover:text-blue-600 transition-colors line-clamp-2 pr-2"
                           >
-                            <Minus size={14} />
-                          </button>
-                          <span className="px-3 py-1 text-sm font-medium min-w-[40px] text-center">
-                            {updatingItemId === item.product._id ? '...' : item.quantity}
-                          </span>
+                            {item.product.name || "Unknown Product"}
+                          </Link>
                           <button
-                            onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
-                            disabled={updatingItemId === item.product._id}
-                            className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            onClick={() => removeFromCart(item.product._id)}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            title="Remove"
                           >
-                            <Plus size={14} />
+                            <Trash2 size={16} />
                           </button>
                         </div>
 
-                        {/* Save for Later */}
-                        <button
-                          onClick={() => {
-                            addToWishlist(item.product._id);
-                            removeFromCart(item.product._id);
-                          }}
-                          className="flex items-center gap-1 px-3 py-1 text-xs text-gray-600 hover:text-red-600 transition-colors"
-                        >
-                          <Heart size={12} />
-                          Save for later
-                        </button>
+                        {/* Price Section */}
+                        <div className="mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-semibold text-green-600">
+                              ₹{prices.sellingPrice}
+                            </span>
+                            <span className="text-sm text-gray-500 line-through">
+                              ₹{prices.originalPrice}
+                            </span>
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                              {prices.discountPercentage}% OFF
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-between">
+                          {/* Quantity Controls */}
+                          <div className="flex items-center border border-gray-200 rounded">
+                            <button
+                              onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
+                              disabled={item.quantity <= 1 || updatingItemId === item.product._id}
+                              className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="px-3 py-1 text-sm font-medium min-w-[40px] text-center">
+                              {updatingItemId === item.product._id ? '...' : item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
+                              disabled={updatingItemId === item.product._id}
+                              className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+
+                          {/* Save for Later */}
+                          <button
+                            onClick={() => {
+                              addToWishlist(item.product._id);
+                              removeFromCart(item.product._id);
+                            }}
+                            className="flex items-center gap-1 px-3 py-1 text-xs text-gray-600 hover:text-red-600 transition-colors"
+                          >
+                            <Heart size={12} />
+                            Save for later
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Order Summary */}
@@ -383,28 +414,21 @@ const CartPage = () => {
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Price ({validCartItems.length} items)</span>
-                    <span>₹{subtotal}</span>
+                    <span className="text-gray-600">Original Price ({validCartItems.length} items)</span>
+                    <span className="line-through text-gray-500">₹{totalOriginalPrice}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Delivery Charges</span>
-                    <span>
-                      {shipping === 0 ? (
-                        <span className="text-green-600">FREE</span>
-                      ) : (
-                        `₹${shipping}`
-                      )}
-                    </span>
+                    <span className="text-gray-600">Selling Price</span>
+                    <span className="text-green-600 font-medium">₹{subtotal}</span>
                   </div>
-                  {subtotal < 500 && (
-                    <p className="text-xs text-gray-500">
-                      ₹{500 - subtotal} more for free delivery
-                    </p>
-                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600">You Saved</span>
+                    <span className="text-green-600 font-medium">₹{totalSavings}</span>
+                  </div>
                   <hr className="my-2" />
                   <div className="flex justify-between font-semibold">
                     <span>Total Amount</span>
-                    <span>₹{total}</span>
+                    <span className="text-green-600">₹{total}</span>
                   </div>
                 </div>
 

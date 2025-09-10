@@ -18,16 +18,23 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
+      // ✅ Call your API with axios
       const res = await axios.post(`${API_URL}/api/auth/admin-login`, form);
-      
+
       console.log("Admin Login API response:", res.data);
-      
+
+      // ✅ Save both token and user info to localStorage
       localStorage.setItem("adminToken", res.data.token);
-      
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      console.log("Token saved to localStorage:", localStorage.getItem("adminToken"));
+
       alert("Admin login successful ✅");
-      console.log("Navigating to admin dashboard...");
+
+      // ✅ Navigate to admin dashboard (orders page)
+      console.log("Navigating to admin orders...");
       navigate("/admin-dashboard");
-      
+
     } catch (err) {
       console.error("Admin login error:", err);
       alert(err.response?.data?.message || "Admin login failed ❌");

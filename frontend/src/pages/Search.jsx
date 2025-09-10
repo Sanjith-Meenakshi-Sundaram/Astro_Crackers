@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Search as SearchIcon, Filter, X, Heart, ShoppingCart, Star, Eye,ArrowLeft } from 'lucide-react';
+import { Search as SearchIcon, Filter, X, Heart, ShoppingCart, Star, Eye, ArrowLeft } from 'lucide-react';
 import { searchProducts } from '../services/product.service';
 import { CATEGORIES, PRICE_RANGES } from '../utils/constant';
 import axios from 'axios';
@@ -24,9 +24,13 @@ const ProductCard = ({ product }) => {
       const response = await axios.get(`${API_URL}/api/wishlist`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const isInWishlist = response.data.some(item =>
-        item.productId === product._id || item._id === product._id || item.product?._id === product._id
+      const wishlistItems = response.data.items || [];
+      const isInWishlist = wishlistItems.some(item =>
+        item.product?._id === product._id ||
+        item.productId === product._id ||
+        item._id === product._id
       );
+
       setInWishlist(isInWishlist);
     } catch (err) {
       console.error("Error checking wishlist status:", err);

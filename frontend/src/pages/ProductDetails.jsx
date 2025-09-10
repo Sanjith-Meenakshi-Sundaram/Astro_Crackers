@@ -51,8 +51,11 @@ const ProductDetails = () => {
       const response = await axios.get(`${API_URL}/api/wishlist`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const isInWishlist = response.data.some(item => 
-        item.productId === id || item._id === id || item.product?._id === id
+      const wishlistItems = response.data.items || [];
+      const isInWishlist = wishlistItems.some(item =>
+        item.product?._id === id ||
+        item.productId === id ||
+        item._id === id
       );
       setInWishlist(isInWishlist);
     } catch (err) {
@@ -155,8 +158,8 @@ const ProductDetails = () => {
   }
 
   // Safe image handling
-  const productImages = product.images && product.images.length > 0 
-    ? product.images 
+  const productImages = product.images && product.images.length > 0
+    ? product.images
     : ["https://placehold.co/400x400/f3f4f6/6b7280?text=No+Image"];
 
   // Calculate pricing
@@ -206,7 +209,7 @@ const ProductDetails = () => {
                   e.target.src = "https://placehold.co/400x400/f3f4f6/6b7280?text=Error";
                 }}
               />
-              
+
               {/* Image indicators */}
               {productImages.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
@@ -214,9 +217,8 @@ const ProductDetails = () => {
                     <button
                       key={idx}
                       onClick={() => setCurrentImage(idx)}
-                      className={`w-2 h-2 rounded-full ${
-                        currentImage === idx ? "bg-red-600" : "bg-gray-300"
-                      }`}
+                      className={`w-2 h-2 rounded-full ${currentImage === idx ? "bg-red-600" : "bg-gray-300"
+                        }`}
                     />
                   ))}
                 </div>
@@ -232,9 +234,8 @@ const ProductDetails = () => {
                     src={img}
                     alt={`View ${idx + 1}`}
                     onClick={() => setCurrentImage(idx)}
-                    className={`w-16 h-16 object-cover rounded-lg cursor-pointer border-2 flex-shrink-0 ${
-                      currentImage === idx ? "border-red-500" : "border-gray-200"
-                    }`}
+                    className={`w-16 h-16 object-cover rounded-lg cursor-pointer border-2 flex-shrink-0 ${currentImage === idx ? "border-red-500" : "border-gray-200"
+                      }`}
                     onError={(e) => {
                       e.target.src = "https://placehold.co/64x64/f3f4f6/6b7280?text=Error";
                     }}
@@ -255,7 +256,7 @@ const ProductDetails = () => {
               <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mt-2 leading-tight">
                 {product.name}
               </h1>
-              
+
               {/* Rating */}
               {product.rating && (
                 <div className="flex items-center gap-2 mt-3">
@@ -289,22 +290,7 @@ const ProductDetails = () => {
               </div>
             )}
 
-            {/* Tags */}
-            {product.tags && product.tags.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Features</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag, index) => (
-                    <span 
-                      key={index}
-                      className="bg-red-50 text-red-600 px-3 py-1 rounded-full text-sm font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            
 
             {/* Quantity Selector */}
             <div>
@@ -336,21 +322,20 @@ const ProductDetails = () => {
                 <ShoppingCart size={18} />
                 {isAddingToCart ? "Adding..." : "Add to Cart"}
               </button>
-              
+
               <button
                 onClick={handleWishlistToggle}
                 disabled={isAddingToWishlist}
-                className={`w-full py-3 rounded-lg font-medium border transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                  inWishlist
+                className={`w-full py-3 rounded-lg font-medium border transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${inWishlist
                     ? "bg-red-50 border-red-300 text-red-600"
                     : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 <Heart size={18} className={inWishlist ? "fill-red-600" : ""} />
-                {isAddingToWishlist 
-                  ? "Updating..." 
-                  : inWishlist 
-                    ? "Remove from Wishlist" 
+                {isAddingToWishlist
+                  ? "Updating..."
+                  : inWishlist
+                    ? "Remove from Wishlist"
                     : "Add to Wishlist"
                 }
               </button>
@@ -367,7 +352,7 @@ const ProductDetails = () => {
               <p className="text-sm text-gray-500">Quality Checked for Your Safety</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 bg-white p-4 rounded-lg shadow-sm">
             <RotateCcw size={24} className="text-orange-600" />
             <div>

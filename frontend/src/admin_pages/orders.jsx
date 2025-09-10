@@ -14,21 +14,40 @@ const AdminOrdersPage = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
+
+      const token = localStorage.getItem('adminToken');
+      console.log('Token from localStorage:', token);
+      console.log('Token length:', token ? token.length : 'null');
+
+      if (!token) {
+        throw new Error('No token found - please login again');
+      }
+
+      console.log('Making request to:', 'http://localhost:5000/api/orders/admin');
+      console.log('Authorization header:', `Bearer ${token}`);
+
       const response = await fetch('http://localhost:5000/api/orders/admin', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error('Failed to fetch orders');
+        const errorText = await response.text();
+        console.log('Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Success response:', data);
       setOrders(data.orders || []);
     } catch (err) {
+      console.error('Fetch error details:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -70,14 +89,14 @@ const AdminOrdersPage = () => {
       const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: newStatus }),
       });
 
       if (response.ok) {
-        setOrders(orders.map(order => 
+        setOrders(orders.map(order =>
           order._id === orderId ? { ...order, status: newStatus } : order
         ));
       }
@@ -133,21 +152,22 @@ const AdminOrdersPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center space-x-4 mt-4 pt-4 border-t border-gray-200">
-          <span className="text-sm font-medium text-gray-700">Filter by status:</span>
-          {['all', 'pending', 'confirmed', 'delivered', 'cancelled'].map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors ${
-                filter === status
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <span className="block text-sm font-medium text-gray-700 mb-3 sm:inline sm:mb-0 sm:mr-4">Filter by status:</span>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:space-x-4 sm:gap-0">
+            {['all', 'pending', 'confirmed', 'delivered', 'cancelled'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilter(status)}
+                className={`px-3 py-2 sm:py-1 rounded-full text-xs font-medium capitalize transition-colors ${filter === status
                   ? 'bg-red-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {status}
-            </button>
-          ))}
+                  }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

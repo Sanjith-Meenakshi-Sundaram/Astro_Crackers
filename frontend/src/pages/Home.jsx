@@ -121,7 +121,7 @@ const Home = () => {
     const fetchFeaturedProducts = async () => {
       try {
         const response = await axios.get(`${VITE_API_URL}/api/featured`);
-        console.log("API Response:", response.data);
+        // console.log("API Response:", response.data);
         setFeaturedProducts(response.data);
       } catch (err) {
         console.error("Error fetching featured products:", err);
@@ -149,7 +149,11 @@ const Home = () => {
 
   // Check if product is in wishlist
   const isProductWishlisted = (productId) => {
-    return wishlistItems.some(item => item.product._id === productId || item.product === productId);
+    return wishlistItems?.some(
+      (item) =>
+        item &&
+        (item.product?._id === productId || item.product === productId)
+    ) || false;
   };
 
   // Add to cart function
@@ -200,9 +204,13 @@ const Home = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        setWishlistItems(prev => prev.filter(item =>
-          (item.product._id || item.product) !== productId
-        ));
+        setWishlistItems((prev) =>
+          prev.filter(
+            (item) =>
+              item &&
+              (item.product?._id || item.product) !== productId
+          )
+        );
 
         const successMsg = document.createElement('div');
         successMsg.textContent = 'Removed from wishlist!';
@@ -401,19 +409,19 @@ const Home = () => {
       {/* Featured Products */}
       <section className="py-12 md:py-16 bg-gray-50">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div class="text-center mb-4">
-            <div class="relative inline-block px-3 py-1.5 border-2 border-red-600 rounded-lg bg-gradient-to-r from-white via-red-50 to-white shadow-md animate-pulse-slow">
+          <div className="text-center mb-4">
+            <div className="relative inline-block px-3 py-1.5 border-2 border-red-600 rounded-lg bg-gradient-to-r from-white via-red-50 to-white shadow-md animate-pulse-slow">
 
-              <span class="absolute top-0 left-0 w-1.5 h-1.5 bg-red-600 rounded-br-md"></span>
-              <span class="absolute top-0 right-0 w-1.5 h-1.5 bg-red-600 rounded-bl-md"></span>
-              <span class="absolute bottom-0 left-0 w-1.5 h-1.5 bg-red-600 rounded-tr-md"></span>
-              <span class="absolute bottom-0 right-0 w-1.5 h-1.5 bg-red-600 rounded-tl-md"></span>
+              <span className="absolute top-0 left-0 w-1.5 h-1.5 bg-red-600 rounded-br-md"></span>
+              <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-red-600 rounded-bl-md"></span>
+              <span className="absolute bottom-0 left-0 w-1.5 h-1.5 bg-red-600 rounded-tr-md"></span>
+              <span className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-red-600 rounded-tl-md"></span>
 
-              <h2 class="text-xl font-extrabold text-red-600 tracking-normal mb-0.5 animate-fade-in">
+              <h2 className="text-xl font-extrabold text-red-600 tracking-normal mb-0.5 animate-fade-in">
                 Featured Products
               </h2>
 
-              <p class="text-gray-600 text-[9px] font-medium leading-tight animate-slide-up">
+              <p className="text-gray-600 text-[9px] font-medium leading-tight animate-slide-up">
                 Discover our most popular crackers, handpicked for quality.
               </p>
 

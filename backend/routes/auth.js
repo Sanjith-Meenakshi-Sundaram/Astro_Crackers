@@ -7,6 +7,10 @@ const {
   adminLogin,
   getProfile,
   updateProfile,
+  // THESE NEW IMPORTS
+  forgotPassword,
+  resetPassword,
+  verifyResetToken
 } = require('../controllers/authController');
 
 // THIS IS THE CORRECTED LINE:
@@ -49,5 +53,26 @@ router.put('/profile', protect, [
     body('name').optional().trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
     body('phone').optional().isMobilePhone('en-IN').withMessage('Please enter a valid Indian phone number')
 ], updateProfile);
+
+// NEW ROUTES FOR PASSWORD RESET FUNCTIONALITY
+
+// @route   POST /api/auth/forgot-password
+// @desc    Send password reset email
+// @access  Public
+router.post('/forgot-password', [
+  body('email').isEmail().withMessage('Please enter a valid email address')
+], forgotPassword);
+
+// @route   GET /api/auth/verify-reset-token/:token
+// @desc    Verify if reset token is valid
+// @access  Public
+router.get('/verify-reset-token/:token', verifyResetToken);
+
+// @route   POST /api/auth/reset-password/:token
+// @desc    Reset password with token
+// @access  Public
+router.post('/reset-password/:token', [
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], resetPassword);
 
 module.exports = router;

@@ -23,15 +23,18 @@ const ProductCard = ({ product }) => {
   useEffect(() => {
     const checkWishlistStatus = async () => {
       if (!token || !product._id) return;
-      
+
       try {
         const response = await axios.get(`${API_URL}/api/wishlist`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        
+
         // Check if current product is in the wishlist
-        const isInWishlist = response.data.some(item => 
-          item.productId === product._id || item._id === product._id || item.product?._id === product._id
+        const wishlistItems = response.data.items || [];
+        const isInWishlist = wishlistItems.some(item =>
+          item.product?._id === product._id ||
+          item.productId === product._id ||
+          item._id === product._id
         );
         setInWishlist(isInWishlist);
       } catch (err) {
@@ -72,7 +75,7 @@ const ProductCard = ({ product }) => {
       }
     } catch (err) {
       console.error("Wishlist error:", err);
-      
+
       // Better error handling based on error type
       if (err.response?.status === 400 && err.response?.data?.message) {
         // Handle specific backend errors (like "already in wishlist")
@@ -118,7 +121,7 @@ const ProductCard = ({ product }) => {
       alert("Added to cart ✅");
     } catch (err) {
       console.error("Cart error:", err);
-      
+
       if (err.response?.status === 400 && err.response?.data?.message) {
         alert(err.response.data.message);
       } else {
@@ -143,13 +146,12 @@ const ProductCard = ({ product }) => {
             </span>
           )}
         </div>
-        
+
         <button
           onClick={handleWishlistToggle}
           disabled={isWishlistLoading}
-          className={`bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:bg-white transition-colors ${
-            isWishlistLoading ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className={`bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:bg-white transition-colors ${isWishlistLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
         >
           <Heart
             size={16}
@@ -172,7 +174,7 @@ const ProductCard = ({ product }) => {
               e.target.src = "https://placehold.co/300x300/f3f4f6/6b7280?text=Error";
             }}
           />
-          
+
           {/* Quick view overlay on hover */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
             <div className="flex gap-2">
@@ -190,12 +192,12 @@ const ProductCard = ({ product }) => {
               {product.category}
             </p>
           )}
-          
+
           {/* Product name */}
           <h3 className="text-gray-800 font-medium text-sm leading-tight mb-2 line-clamp-2 group-hover:text-red-600 transition-colors">
             {product.name}
           </h3>
-          
+
           {/* Rating (if available) */}
           {product.rating && (
             <div className="flex items-center gap-1 mb-2">
@@ -206,7 +208,7 @@ const ProductCard = ({ product }) => {
               <span className="text-gray-500 text-xs">({product.reviews || 0})</span>
             </div>
           )}
-          
+
           {/* Price section */}
           <div className="flex items-center gap-2 mb-3">
             <span className="text-green-700 font-bold text-lg">₹{sellingPrice}</span>
@@ -214,12 +216,12 @@ const ProductCard = ({ product }) => {
               <span className="text-gray-400 font-medium text-sm line-through">₹{originalPrice}</span>
             )}
           </div>
-          
+
           {/* Features/highlights */}
           {product.tags && product.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
               {product.tags.slice(0, 2).map((tag, index) => (
-                <span 
+                <span
                   key={index}
                   className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full"
                 >
@@ -240,15 +242,15 @@ const ProductCard = ({ product }) => {
           <ShoppingCart size={14} />
           Add to Cart
         </button>
-        
-        <Link 
+
+        <Link
           to={`/products/${product._id}`}
           className="px-3 py-2 border border-red-600 text-red-600 hover:bg-red-50 rounded-md text-sm font-medium transition-colors flex items-center justify-center"
         >
           <Eye size={14} />
         </Link>
       </div>
-      
+
       {/* Delivery info */}
       <div className="px-3 pb-3">
         <p className="text-xs text-gray-500 flex items-center gap-1">

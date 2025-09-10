@@ -15,6 +15,20 @@ const OrdersPage = () => {
 
   const token = localStorage.getItem('token');
 
+  // Price calculation helper function
+  const calculatePrices = (price, discount = 80) => {
+    const sellingPrice = price;
+    const originalPrice = Math.round((sellingPrice * 100) / (100 - discount));
+    const discountPercentage = Math.round(((originalPrice - sellingPrice) / originalPrice) * 100);
+
+    return {
+      sellingPrice,
+      originalPrice,
+      discountPercentage,
+      savings: originalPrice - sellingPrice
+    };
+  };
+
   useEffect(() => {
     fetchLatestOrder();
   }, []);
@@ -74,6 +88,18 @@ const OrdersPage = () => {
 
     const doc = new jsPDF();
 
+    // Calculate totals for pricing display
+    let totalOriginalPrice = 0;
+    let totalSellingPrice = 0;
+
+    order.items.forEach((item) => {
+      const prices = calculatePrices(item.price);
+      totalOriginalPrice += prices.originalPrice * item.quantity;
+      totalSellingPrice += prices.sellingPrice * item.quantity;
+    });
+
+    const totalSavings = totalOriginalPrice - totalSellingPrice;
+
     // 🔴 Brand Name
     doc.setFontSize(22);
     doc.setTextColor(220, 38, 38);
@@ -88,7 +114,7 @@ const OrdersPage = () => {
     doc.setFontSize(10);
     doc.text(`Order Number: ${order.orderNumber}`, 20, 50);
     doc.text(`Date: ${formatDate(order.createdAt)}`, 20, 58);
-    doc.text(`Status: ${order.status.toUpperCase()}`, 20, 66);
+    // doc.text(`Status: ${order.status.toUpperCase()}`, 20, 66);
 
     // Customer details
     doc.setFontSize(12);
@@ -111,13 +137,17 @@ const OrdersPage = () => {
     doc.text(`${order.customerDetails.address.pincode}`, 20, 134);
 
     // Items table
-    const tableColumn = ['Item', 'Price', 'Qty', 'Subtotal'];
-    const tableRows = order.items.map((item) => [
-      item.productName,
-      `${item.price}`,
-      item.quantity.toString(),
-      `${item.subtotal}`,
-    ]);
+    const tableColumn = ['Item', 'Original', 'Selling', 'Qty', 'Subtotal'];
+    const tableRows = order.items.map((item) => {
+      const prices = calculatePrices(item.price);
+      return [
+        item.productName,
+        `${prices.originalPrice}`,
+        `${prices.sellingPrice}`,
+        item.quantity.toString(),
+        `${item.subtotal}`,
+      ];
+    });
 
     autoTable(doc, {
       head: [tableColumn],
@@ -128,17 +158,23 @@ const OrdersPage = () => {
       headStyles: { fillColor: [239, 68, 68] },
     });
 
-    // Total
+    // Pricing summary
     const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.text(`Original Price: Rs. ${totalOriginalPrice}`, 20, finalY);
+    doc.text(`Selling Price: Rs. ${totalSellingPrice}`, 20, finalY + 8);
+    doc.setTextColor(34, 197, 94); // Green color
+    doc.text(`You Saved: Rs. ${totalSavings}`, 20, finalY + 16);
+    doc.setTextColor(0, 0, 0); // Reset to black
     doc.setFontSize(12);
-    doc.text(`Total Amount: Rs. ${order.totalAmount}`, 20, finalY);
+    doc.text(`Total Amount: Rs. ${order.totalAmount}`, 20, finalY + 28);
 
     // Footer
     doc.setFontSize(8);
     doc.text(
       'Your celebration, our crackers. See you next time!',
       105,
-      finalY + 20,
+      finalY + 40,
       null,
       null,
       'center'
@@ -146,7 +182,7 @@ const OrdersPage = () => {
     doc.text(
       'For support, contact: crackers.astro@gmail.com',
       105,
-      finalY + 28, // shifted down so it won't overlap
+      finalY + 48,
       null,
       null,
       'center'
@@ -183,6 +219,18 @@ const OrdersPage = () => {
       </div>
     );
   }
+
+  // Calculate totals for display
+  let totalOriginalPrice = 0;
+  let totalSellingPrice = 0;
+
+  order.items.forEach((item) => {
+    const prices = calculatePrices(item.price);
+    totalOriginalPrice += prices.originalPrice * item.quantity;
+    totalSellingPrice += prices.sellingPrice * item.quantity;
+  });
+
+  const totalSavings = totalOriginalPrice - totalSellingPrice;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -266,8 +314,16 @@ const OrdersPage = () => {
             <div className="border-t border-gray-100 pt-4 mb-4">
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-800">₹{order.totalAmount}</span>
+                  <span className="text-gray-600">Original Price</span>
+                  <span className="text-gray-500 line-through">₹{totalOriginalPrice}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Selling Price</span>
+                  <span className="text-green-600 font-medium">₹{totalSellingPrice}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-green-600">You Saved</span>
+                  <span className="text-green-600 font-medium">₹{totalSavings}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Delivery</span>
@@ -279,7 +335,7 @@ const OrdersPage = () => {
                 </div>
                 <div className="flex justify-between font-semibold border-t border-gray-100 pt-2">
                   <span className="text-gray-800">Total</span>
-                  <span className="text-gray-800">₹{order.totalAmount}</span>
+                  <span className="text-green-600">₹{order.totalAmount}</span>
                 </div>
               </div>
             </div>
@@ -291,25 +347,34 @@ const OrdersPage = () => {
           <div className="p-4">
             <h3 className="font-medium text-gray-800 text-sm mb-3">Items</h3>
             <div className="space-y-3">
-              {order.items.map((item, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center">
-                    <Package size={16} className="text-gray-400" />
+              {order.items.map((item, index) => {
+                const prices = calculatePrices(item.price);
+                return (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center">
+                      <Package size={16} className="text-gray-400" />
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      <p className="text-sm font-medium text-gray-800 line-clamp-2">
+                        {item.productName}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-green-600 font-medium">₹{prices.sellingPrice}</span>
+                        <span className="text-xs text-gray-500 line-through">₹{prices.originalPrice}</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-1 rounded">
+                          {prices.discountPercentage}% OFF
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-green-600">
+                        ₹{item.subtotal}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-grow min-w-0">
-                    <p className="text-sm font-medium text-gray-800 line-clamp-2">
-                      {item.productName}
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">₹{item.price}</p>
-                    <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-800">
-                      ₹{item.subtotal}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -379,24 +444,40 @@ const OrdersPage = () => {
 
                   <div>
                     <p className="font-semibold mb-2">Items:</p>
-                    {order.items.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between py-1 border-b border-gray-100"
-                      >
-                        <div>
-                          <p className="font-medium">{item.productName}</p>
-                          <p className="text-gray-600">
-                            ₹{item.price} × {item.quantity}
-                          </p>
+                    {order.items.map((item, index) => {
+                      const prices = calculatePrices(item.price);
+                      return (
+                        <div
+                          key={index}
+                          className="flex justify-between py-1 border-b border-gray-100"
+                        >
+                          <div>
+                            <p className="font-medium">{item.productName}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-green-600 font-medium">₹{prices.sellingPrice}</span>
+                              <span className="text-gray-500 line-through">₹{prices.originalPrice}</span>
+                              <span className="text-gray-600">× {item.quantity}</span>
+                            </div>
+                            <p className="text-green-600 text-xs">
+                              Saved: ₹{prices.savings * item.quantity}
+                            </p>
+                          </div>
+                          <p className="font-semibold text-green-600">₹{item.subtotal}</p>
                         </div>
-                        <p className="font-semibold">₹{item.subtotal}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
-                  <div className="border-t border-gray-200 pt-2">
-                    <div className="flex justify-between font-bold">
+                  <div className="border-t border-gray-200 pt-2 space-y-1">
+                    <div className="flex justify-between text-gray-600">
+                      <span>Original Price:</span>
+                      <span className="line-through">₹{totalOriginalPrice}</span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>You Saved:</span>
+                      <span className="font-medium">₹{totalSavings}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-green-600 border-t pt-1">
                       <span>Total Amount:</span>
                       <span>₹{order.totalAmount}</span>
                     </div>
@@ -408,7 +489,7 @@ const OrdersPage = () => {
         )}
 
         {/* Continue Shopping */}
-        <div className="text-center mt-8">
+        <div className="text-center mt-4 pb-10">
           <Link
             to="/"
             className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
