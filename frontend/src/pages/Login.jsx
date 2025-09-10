@@ -141,7 +141,7 @@ const Login = () => {
       </div>
 
       {/* Small Screens - Image on top, form below */}
-      <div className="md:hidden overflow-hidden bg-white flex flex-col">
+      <div className="md:hidden min-h-screen bg-white flex flex-col">
         {/* Top Image - Reduced height */}
         <div className="h-1/3 flex-shrink-0">
           <img
@@ -152,8 +152,8 @@ const Login = () => {
         </div>
 
         {/* Form centered in remaining space */}
-        <div className="flex-1 flex items-center justify-center px-6">
-          <div className="w-full max-w-xs">
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="w-full max-w-xs mx-auto">
             {/* Animated Welcome Text - No logo for mobile */}
             <div className="mb-4 text-center">
               <div className="inline-block bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl px-3 py-2">
@@ -217,7 +217,7 @@ const Login = () => {
                 </Link>
               </div>
 
-              <div className="text-center pb-[env(safe-area-inset-bottom)]">
+              <div className="text-center mt-auto pb-4 pb-[env(safe-area-inset-bottom)]">
                 <Link to="/admin-login" className="text-xs text-gray-500 hover:text-gray-700">
                   Admin?
                 </Link>
