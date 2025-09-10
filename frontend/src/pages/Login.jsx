@@ -217,7 +217,7 @@ const Login = () => {
                 </Link>
               </div>
 
-              <div className="text-center">
+              <div className="text-center pb-[env(safe-area-inset-bottom)]">
                 <Link to="/admin-login" className="text-xs text-gray-500 hover:text-gray-700">
                   Admin?
                 </Link>
