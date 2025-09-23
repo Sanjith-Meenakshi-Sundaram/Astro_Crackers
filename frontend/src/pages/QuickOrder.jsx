@@ -23,7 +23,7 @@ const QuickOrder = () => {
 
   const categoryNames = [
     'morning crackers',
-    'night crackers', 
+    'night crackers',
     'kids special',
     'premium skyshots',
     'gift boxes'
@@ -42,7 +42,7 @@ const QuickOrder = () => {
       setLoading(true);
       try {
         const productsByCategory = {};
-        
+
         for (const category of categoryNames) {
           const response = await fetch(`https://astro-crackers.onrender.com/api/products/category/${encodeURIComponent(category)}`);
           if (response.ok) {
@@ -52,7 +52,7 @@ const QuickOrder = () => {
             productsByCategory[category] = [];
           }
         }
-        
+
         setProducts(productsByCategory);
         setCategories(categoryNames);
       } catch (error) {
@@ -77,7 +77,7 @@ const QuickOrder = () => {
     try {
       // Create a new window for PDF content
       const printWindow = window.open('', '_blank');
-      
+
       // Get all categories with their products (maintain order and avoid duplication)
       const categoriesWithProducts = [];
       categories.forEach(category => {
@@ -95,7 +95,7 @@ const QuickOrder = () => {
       // Split categories into 3 pages
       const totalCategories = categoriesWithProducts.length;
       const categoriesPerPage = Math.ceil(totalCategories / 3);
-      
+
       const page1Categories = categoriesWithProducts.slice(0, categoriesPerPage);
       const page2Categories = categoriesWithProducts.slice(categoriesPerPage, categoriesPerPage * 2);
       const page3Categories = categoriesWithProducts.slice(categoriesPerPage * 2);
@@ -338,10 +338,10 @@ const QuickOrder = () => {
                       <tr>
                         <td>
                           <div class="product-image">
-                            ${product.images && product.images[0] ? 
-                              `<img src="${product.images[0]}" alt="${product.name}" />` : 
-                              'No Image'
-                            }
+                            ${product.images && product.images[0] ?
+            `<img src="${product.images[0]}" alt="${product.name}" />` :
+            'No Image'
+          }
                           </div>
                         </td>
                         <td>
@@ -374,7 +374,7 @@ const QuickOrder = () => {
       // Write content to new window
       printWindow.document.write(pdfContent);
       printWindow.document.close();
-      
+
       // Wait for content to load, then print
       printWindow.onload = () => {
         setTimeout(() => {
@@ -450,15 +450,15 @@ const QuickOrder = () => {
   };
 
   const handleFinalSubmit = async () => {
-    if (!customerDetails.name || !customerDetails.email || !customerDetails.phone || 
-        !customerDetails.address.street || !customerDetails.address.city || 
-        !customerDetails.address.state || !customerDetails.address.pincode) {
+    if (!customerDetails.name || !customerDetails.email || !customerDetails.phone ||
+      !customerDetails.address.street || !customerDetails.address.city ||
+      !customerDetails.address.state || !customerDetails.address.pincode) {
       alert('Please fill all required fields');
       return;
     }
 
     setSubmitting(true);
-    
+
     try {
       const orderData = {
         orderNumber: `ORD${Date.now()}`,
@@ -558,7 +558,7 @@ const QuickOrder = () => {
       </div>
 
       <div className="max-w-6xl mx-auto p-4">
-        
+
 
         {/* Products by Category */}
         {categories.map((category) => (
@@ -566,7 +566,7 @@ const QuickOrder = () => {
             <h2 className="text-2xl font-bold text-red-700 mb-4 uppercase border-b-2 border-red-200 pb-2">
               {category}
             </h2>
-            
+
             {products[category]?.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 No products available in this category
@@ -596,8 +596,8 @@ const QuickOrder = () => {
                             <td className="p-3">
                               <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
                                 {product.images?.[0] ? (
-                                  <img 
-                                    src={product.images[0]} 
+                                  <img
+                                    src={product.images[0]}
                                     alt={product.name}
                                     className="w-full h-full object-cover"
                                   />
@@ -694,141 +694,150 @@ const QuickOrder = () => {
 
       {/* Address Modal - MOBILE RESPONSIVE FIXED */}
       {showAddressModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full my-4 sm:my-0 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col">
-            {/* Scrollable Content Area */}
-            <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
-              <h3 className="text-xl font-bold text-red-700 mb-4">Customer Details</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <User size={16} className="inline mr-1" />
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={customerDetails.name}
-                    onChange={(e) => setCustomerDetails({...customerDetails, name: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    required
-                  />
-                </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex flex-col">
+          {/* Mobile: Full screen modal, Desktop: Centered modal */}
+          <div className="flex-1 overflow-y-auto flex items-start sm:items-center justify-center p-0 sm:p-4">
+            <div className="bg-white w-full sm:max-w-md sm:rounded-lg shadow-xl min-h-full sm:min-h-0 sm:max-h-[90vh] flex flex-col">
+              {/* Header - Fixed */}
+              <div className="flex-shrink-0 p-4 sm:p-6 border-b bg-white sm:rounded-t-lg">
+                <h3 className="text-xl font-bold text-red-700">Customer Details</h3>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <Mail size={16} className="inline mr-1" />
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={customerDetails.email}
-                    onChange={(e) => setCustomerDetails({...customerDetails, email: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <Phone size={16} className="inline mr-1" />
-                    Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    value={customerDetails.phone}
-                    onChange={(e) => setCustomerDetails({...customerDetails, phone: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <MapPin size={16} className="inline mr-1" />
-                    Street Address *
-                  </label>
-                  <textarea
-                    value={customerDetails.address.street}
-                    onChange={(e) => setCustomerDetails({
-                      ...customerDetails,
-                      address: {...customerDetails.address, street: e.target.value}
-                    })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    rows="2"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <User size={16} className="inline mr-1" />
+                      Full Name *
+                    </label>
                     <input
                       type="text"
-                      value={customerDetails.address.city}
+                      value={customerDetails.name}
+                      onChange={(e) => setCustomerDetails({ ...customerDetails, name: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <Mail size={16} className="inline mr-1" />
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={customerDetails.email}
+                      onChange={(e) => setCustomerDetails({ ...customerDetails, email: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <Phone size={16} className="inline mr-1" />
+                      Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      value={customerDetails.phone}
+                      onChange={(e) => setCustomerDetails({ ...customerDetails, phone: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <MapPin size={16} className="inline mr-1" />
+                      Street Address *
+                    </label>
+                    <textarea
+                      value={customerDetails.address.street}
                       onChange={(e) => setCustomerDetails({
                         ...customerDetails,
-                        address: {...customerDetails.address, city: e.target.value}
+                        address: { ...customerDetails.address, street: e.target.value }
+                      })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      rows="2"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                      <input
+                        type="text"
+                        value={customerDetails.address.city}
+                        onChange={(e) => setCustomerDetails({
+                          ...customerDetails,
+                          address: { ...customerDetails.address, city: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                      <input
+                        type="text"
+                        value={customerDetails.address.state}
+                        onChange={(e) => setCustomerDetails({
+                          ...customerDetails,
+                          address: { ...customerDetails.address, state: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
+                    <input
+                      type="text"
+                      value={customerDetails.address.pincode}
+                      onChange={(e) => setCustomerDetails({
+                        ...customerDetails,
+                        address: { ...customerDetails.address, pincode: e.target.value }
                       })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2"
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
-                    <input
-                      type="text"
-                      value={customerDetails.address.state}
-                      onChange={(e) => setCustomerDetails({
-                        ...customerDetails,
-                        address: {...customerDetails.address, state: e.target.value}
-                      })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      required
-                    />
+
+                  <div className="border-t pt-4 mt-6">
+                    <div className="text-sm text-gray-600 mb-2">Order Summary:</div>
+                    <div className="text-sm">Total Items: {cartItems.length}</div>
+                    <div className="text-sm">Total Savings: <span className="text-green-600 font-bold">₹{totalSavings}</span></div>
+                    <div className="text-lg font-bold text-red-600">Total Amount: ₹{totalAmount}</div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
-                  <input
-                    type="text"
-                    value={customerDetails.address.pincode}
-                    onChange={(e) => setCustomerDetails({
-                      ...customerDetails,
-                      address: {...customerDetails.address, pincode: e.target.value}
-                    })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    required
-                  />
+                  {/* Add some bottom padding to ensure content doesn't get cut off */}
+                  <div className="pb-4"></div>
                 </div>
               </div>
 
-              <div className="border-t pt-4 mt-6">
-                <div className="text-sm text-gray-600 mb-2">Order Summary:</div>
-                <div className="text-sm">Total Items: {cartItems.length}</div>
-                <div className="text-sm">Total Savings: <span className="text-green-600 font-bold">₹{totalSavings}</span></div>
-                <div className="text-lg font-bold text-red-600">Total Amount: ₹{totalAmount}</div>
-              </div>
-            </div>
-
-            {/* Fixed Footer with Buttons */}
-            <div className="flex-shrink-0 border-t bg-white p-4 sm:p-6 rounded-b-lg">
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowAddressModal(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleFinalSubmit}
-                  disabled={submitting}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
-                >
-                  {submitting ? 'Placing Order...' : 'Confirm Order'}
-                </button>
+              {/* Fixed Footer with Buttons - Always visible with bottom navbar spacing */}
+              <div className="flex-shrink-0 border-t bg-white p-4 pb-20 sm:p-6 sm:pb-6 sm:rounded-b-lg">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowAddressModal(false)}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleFinalSubmit}
+                    disabled={submitting}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
+                  >
+                    {submitting ? 'Placing Order...' : 'Confirm Order'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
