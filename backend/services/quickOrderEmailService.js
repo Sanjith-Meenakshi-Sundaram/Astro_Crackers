@@ -1,22 +1,34 @@
-const nodemailer = require('nodemailer');
+// Using Brevo API instead of SMTP - 100% compatible with Render
+const axios = require('axios'); // Make sure to install: npm install axios
 
-// Create transporter using Gmail service
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 465,
-    secure: true, // TLS is used with STARTTLS on port 587
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-      rejectUnauthorized: false
-    }
-  });
+// Brevo API configuration
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+
+// Create Brevo API client
+const sendEmailViaBrevoAPI = async (emailData) => {
+  try {
+    const response = await axios.post(BREVO_API_URL, emailData, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY // Your Brevo API key
+      },
+      timeout: 30000 // 30 seconds timeout
+    });
+
+    return {
+      success: true,
+      messageId: response.data.messageId || 'sent',
+      response: response.data
+    };
+
+  } catch (error) {
+    console.error('❌ Brevo API Error:', error.response?.data || error.message);
+    throw new Error(`Brevo API failed: ${error.response?.data?.message || error.message}`);
+  }
 };
 
-// Beautiful HTML template for the shop owner
+// Beautiful HTML template for the shop owner (same as before)
 const createOwnerEmailTemplate = (order, user) => {
   const itemsHtml = order.items.map(item => `
     <tr>
@@ -118,7 +130,7 @@ const createOwnerEmailTemplate = (order, user) => {
   `;
 };
 
-// Beautiful HTML template for the customer
+// Beautiful HTML template for the customer (same as before)
 const createCustomerEmailTemplate = (order, user) => {
   const itemsHtml = order.items.map(item => `
     <tr>
@@ -230,45 +242,58 @@ const createCustomerEmailTemplate = (order, user) => {
   `;
 };
 
-// Main function to send both emails
+// Main function to send both emails using Brevo API
 const sendQuickOrderConfirmationEmails = async ({ to, user, order }) => {
-  const transporter = createTransporter();
-
+  console.log('🎆 Sending emails via Brevo API...');
+  
   try {
-    // Email to shop owner
-    const ownerMailOptions = {
-      from: `"Astro Crackers - Quick Orders" <${process.env.EMAIL_USERNAME}>`,
-      to: process.env.ADMIN_EMAIL, // Your admin email
+    // Prepare owner email data
+    const ownerEmailData = {
+      sender: {
+        name: "Astro Crackers - Quick Orders",
+        email: process.env.EMAIL_FROM || "noreply@yourdomain.com" // Use your verified sender email
+      },
+      to: [{
+        email: process.env.ADMIN_EMAIL,
+        name: "Admin"
+      }],
       subject: `🎆 NEW Quick Order #${order.orderNumber} - ₹${order.totalAmount.toFixed(2)} | Contact: ${user.phone}`,
-      html: createOwnerEmailTemplate(order, user)
+      htmlContent: createOwnerEmailTemplate(order, user)
     };
 
-    // Email to customer
-    const customerMailOptions = {
-      from: `"Astro Crackers" <${process.env.EMAIL_USERNAME}>`,
-      to: to,
+    // Prepare customer email data  
+    const customerEmailData = {
+      sender: {
+        name: "Astro Crackers",
+        email: process.env.EMAIL_FROM || "noreply@yourdomain.com" // Use your verified sender email
+      },
+      to: [{
+        email: to,
+        name: user.name
+      }],
       subject: `✅ Order Confirmed #${order.orderNumber} - Astro Crackers | We'll call you soon!`,
-      html: createCustomerEmailTemplate(order, user)
+      htmlContent: createCustomerEmailTemplate(order, user)
     };
 
-    // Send both emails simultaneously
+    // Send both emails simultaneously using Brevo API
     const [ownerResult, customerResult] = await Promise.all([
-      transporter.sendMail(ownerMailOptions),
-      transporter.sendMail(customerMailOptions)
+      sendEmailViaBrevoAPI(ownerEmailData),
+      sendEmailViaBrevoAPI(customerEmailData)
     ]);
 
-    console.log('✅ Owner email sent:', ownerResult.messageId);
-    console.log('✅ Customer email sent:', customerResult.messageId);
+    console.log('✅ Owner email sent via Brevo API:', ownerResult.messageId);
+    console.log('✅ Customer email sent via Brevo API:', customerResult.messageId);
     console.log('🎆 Quick order emails sent successfully for order:', order.orderNumber);
 
     return {
       success: true,
       ownerEmailId: ownerResult.messageId,
-      customerEmailId: customerResult.messageId
+      customerEmailId: customerResult.messageId,
+      method: 'brevo-api'
     };
 
   } catch (error) {
-    console.error('❌ Quick order email sending error:', error);
+    console.error('❌ Brevo API email sending error:', error);
     throw new Error(`Email sending failed: ${error.message}`);
   }
 };
