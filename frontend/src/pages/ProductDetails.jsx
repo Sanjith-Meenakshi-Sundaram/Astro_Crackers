@@ -290,7 +290,7 @@ const ProductDetails = () => {
               </div>
             )}
 
-            
+
 
             {/* Quantity Selector */}
             <div>
@@ -327,8 +327,8 @@ const ProductDetails = () => {
                 onClick={handleWishlistToggle}
                 disabled={isAddingToWishlist}
                 className={`w-full py-3 rounded-lg font-medium border transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${inWishlist
-                    ? "bg-red-50 border-red-300 text-red-600"
-                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  ? "bg-red-50 border-red-300 text-red-600"
+                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
               >
                 <Heart size={18} className={inWishlist ? "fill-red-600" : ""} />
@@ -345,6 +345,9 @@ const ProductDetails = () => {
 
         {/* Features Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <p className="text-[12px] text-gray-400">
+            <strong>Note:</strong> Brand names and images may differ but products remain the same.
+          </p>
           <div className="flex items-center gap-3 bg-white p-4 rounded-lg shadow-sm">
             <Shield size={24} className="text-blue-600" />
             <div>

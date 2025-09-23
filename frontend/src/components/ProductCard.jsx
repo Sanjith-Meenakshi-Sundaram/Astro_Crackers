@@ -218,18 +218,7 @@ const ProductCard = ({ product }) => {
           </div>
 
           {/* Features/highlights */}
-          {product.tags && product.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {product.tags.slice(0, 2).map((tag, index) => (
-                <span
-                  key={index}
-                  className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+          
         </div>
       </Link>
 
@@ -253,9 +242,8 @@ const ProductCard = ({ product }) => {
 
       {/* Delivery info */}
       <div className="px-3 pb-3">
-        <p className="text-xs text-gray-500 flex items-center gap-1">
-          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-          Fast Festival Delivery
+        <p className="text-[10px] text-gray-400">
+          <strong>Note:</strong> Brand names and images may differ but products remain the same.
         </p>
       </div>
     </div>

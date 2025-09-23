@@ -104,7 +104,7 @@ const Home = () => {
       name: "gift boxes",
       image:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRq6V6RruidXmJ_Fbvb2idI1Bv7nQ9f2A-OIg&s",
-      description: "Beautifully packed assortments of all-time favorite crackers — perfect for gifting during Diwali and festivals.",
+      description: "FAMILY PACK AND GIFT BOXES COMBO",
     },
   ];
 
