@@ -475,7 +475,7 @@ const QuickOrder = () => {
       };
 
       // Send order email (you'll need to implement this endpoint)
-      const response = await fetch('http://localhost:5000/api/quick-order/send-confirmation', {
+      const response = await fetch('https://astro-crackers.onrender.com/api/quick-order/send-confirmation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
