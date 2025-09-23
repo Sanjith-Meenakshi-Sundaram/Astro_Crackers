@@ -1,28 +1,49 @@
-const nodemailer = require('nodemailer');
+// backend/services/emailService.js - Password Reset using Brevo API
+const axios = require('axios');
 
-// Create transporter
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 465,   // use 465 if you want SSL
-    secure: true, // You can change this to your email service
-    auth: {
-      user: process.env.EMAIL_USER, // Your email
-      pass: process.env.EMAIL_PASS,  // Your email app password
-    }
-  });
+// Brevo API configuration
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+
+// Send email via Brevo API
+const sendEmailViaBrevoAPI = async (emailData) => {
+  try {
+    const response = await axios.post(BREVO_API_URL, emailData, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY
+      },
+      timeout: 30000 // 30 seconds timeout
+    });
+
+    return {
+      success: true,
+      messageId: response.data.messageId || 'sent',
+      response: response.data
+    };
+
+  } catch (error) {
+    console.error('❌ Brevo API Error:', error.response?.data || error.message);
+    throw new Error(`Brevo API failed: ${error.response?.data?.message || error.message}`);
+  }
 };
 
-// Send password reset email
+// Send password reset email using Brevo API
 const sendPasswordResetEmail = async (email, resetURL) => {
   try {
-    const transporter = createTransporter();
-
-    const mailOptions = {
-      from: `"Astro Crackers" <${process.env.EMAIL_USERNAME}>`,
-      to: email,
+    console.log('🔑 Sending password reset email via Brevo API...');
+    
+    const emailData = {
+      sender: {
+        name: "Astro Crackers",
+        email: process.env.EMAIL_FROM || "crackers.astro@gmail.com"
+      },
+      to: [{
+        email: email,
+        name: "User"
+      }],
       subject: 'Password Reset Request - Astro Crackers',
-      html: `
+      htmlContent: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -116,12 +137,12 @@ const sendPasswordResetEmail = async (email, resetURL) => {
       `
     };
 
-    const result = await transporter.sendMail(mailOptions);
-    console.log('Password reset email sent successfully:', result.messageId);
+    const result = await sendEmailViaBrevoAPI(emailData);
+    console.log('✅ Password reset email sent successfully via Brevo API:', result.messageId);
     return { success: true, messageId: result.messageId };
 
   } catch (error) {
-    console.error('Error sending password reset email:', error);
+    console.error('❌ Error sending password reset email:', error);
     return { success: false, error: error.message };
   }
 };
