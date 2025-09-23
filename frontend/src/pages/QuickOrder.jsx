@@ -692,11 +692,12 @@ const QuickOrder = () => {
         )}
       </div>
 
-      {/* Address Modal */}
+      {/* Address Modal - MOBILE RESPONSIVE FIXED */}
       {showAddressModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-90vh overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full my-4 sm:my-0 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col">
+            {/* Scrollable Content Area */}
+            <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
               <h3 className="text-xl font-bold text-red-700 mb-4">Customer Details</h3>
               
               <div className="space-y-4">
@@ -809,11 +810,14 @@ const QuickOrder = () => {
                 <div className="text-sm">Total Savings: <span className="text-green-600 font-bold">₹{totalSavings}</span></div>
                 <div className="text-lg font-bold text-red-600">Total Amount: ₹{totalAmount}</div>
               </div>
+            </div>
 
-              <div className="flex gap-3 mt-6">
+            {/* Fixed Footer with Buttons */}
+            <div className="flex-shrink-0 border-t bg-white p-4 sm:p-6 rounded-b-lg">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setShowAddressModal(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors"
+                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
                   disabled={submitting}
                 >
                   Cancel
@@ -821,7 +825,7 @@ const QuickOrder = () => {
                 <button
                   onClick={handleFinalSubmit}
                   disabled={submitting}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 text-sm sm:text-base"
                 >
                   {submitting ? 'Placing Order...' : 'Confirm Order'}
                 </button>

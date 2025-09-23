@@ -1,16 +1,30 @@
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 
-// Use the simple and effective 'gmail' service transporter
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 465, // or 465 for SSL
-    secure: true, // true if using 465
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+// Brevo API configuration
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+
+// Send email via Brevo API
+const sendEmailViaBrevoAPI = async (emailData) => {
+  try {
+    const response = await axios.post(BREVO_API_URL, emailData, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY
+      },
+      timeout: 30000 // 30 seconds timeout
+    });
+
+    return {
+      success: true,
+      messageId: response.data.messageId || 'sent',
+      response: response.data
+    };
+
+  } catch (error) {
+    console.error('❌ Brevo API Error:', error.response?.data || error.message);
+    throw new Error(`Brevo API failed: ${error.response?.data?.message || error.message}`);
+  }
 };
 
 // Your beautiful HTML template for the owner
@@ -129,37 +143,61 @@ const createCustomerEmailTemplate = (order, user) => {
   `;
 };
 
-// The corrected function to send the emails
+// The corrected function to send the emails using Brevo API
 const sendOrderConfirmationEmails = async ({ to, user, order }) => {
-  const transporter = createTransporter();
-  
   try {
-    // Email to owner
-    const ownerMailOptions = {
-      from: `"Astro Crackers Orders" <${process.env.EMAIL_USERNAME}>`,
-      to: process.env.ADMIN_EMAIL,
+    console.log('📧 Sending order confirmation emails via Brevo API...');
+
+    // Email data for owner
+    const ownerEmailData = {
+      sender: {
+        name: "Astro Crackers",
+        email: process.env.EMAIL_FROM || "crackers.astro@gmail.com"
+      },
+      to: [{
+        email: process.env.ADMIN_EMAIL,
+        name: "Admin"
+      }],
       subject: `🎆 New Order #${order.orderNumber} - ₹${order.totalAmount.toFixed(2)}`,
-      html: createOwnerEmailTemplate(order, user)
+      htmlContent: createOwnerEmailTemplate(order, user)
     };
 
-    // Email to customer
-    const customerMailOptions = {
-      from: `"Astro Crackers" <${process.env.EMAIL_USERNAME}>`,
-      to: to,
+    // Email data for customer
+    const customerEmailData = {
+      sender: {
+        name: "Astro Crackers",
+        email: process.env.EMAIL_FROM || "crackers.astro@gmail.com"
+      },
+      to: [{
+        email: to,
+        name: order.customerDetails.name || "Customer"
+      }],
       subject: `Order Confirmation #${order.orderNumber} - Astro Crackers`,
-      html: createCustomerEmailTemplate(order, user)
+      htmlContent: createCustomerEmailTemplate(order, user)
     };
 
-    // Send both emails
-    await Promise.all([
-      transporter.sendMail(ownerMailOptions),
-      transporter.sendMail(customerMailOptions)
+    // Send both emails using Promise.all for parallel execution
+    const [ownerResult, customerResult] = await Promise.all([
+      sendEmailViaBrevoAPI(ownerEmailData),
+      sendEmailViaBrevoAPI(customerEmailData)
     ]);
 
-    console.log('Emails sent successfully for order:', order.orderNumber);
+    console.log('✅ Owner email sent successfully:', ownerResult.messageId);
+    console.log('✅ Customer email sent successfully:', customerResult.messageId);
+    console.log('✅ All order confirmation emails sent for order:', order.orderNumber);
+
+    return {
+      success: true,
+      ownerMessageId: ownerResult.messageId,
+      customerMessageId: customerResult.messageId
+    };
 
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error('❌ Error sending order confirmation emails:', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
 };
 
