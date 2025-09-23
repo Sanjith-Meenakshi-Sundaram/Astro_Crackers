@@ -3,11 +3,16 @@ const nodemailer = require('nodemailer');
 // Create transporter using Gmail service
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: "smtp-relay.brevo.com",
+    port: 587,
+    secure: false, // TLS is used with STARTTLS on port 587
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    tls: {
+      rejectUnauthorized: false
+    }
   });
 };
 
@@ -228,11 +233,11 @@ const createCustomerEmailTemplate = (order, user) => {
 // Main function to send both emails
 const sendQuickOrderConfirmationEmails = async ({ to, user, order }) => {
   const transporter = createTransporter();
-  
+
   try {
     // Email to shop owner
     const ownerMailOptions = {
-      from: `"Astro Crackers - Quick Orders" <${process.env.EMAIL_USER}>`,
+      from: `"Astro Crackers - Quick Orders" <${process.env.EMAIL_USERNAME}>`,
       to: process.env.ADMIN_EMAIL, // Your admin email
       subject: `🎆 NEW Quick Order #${order.orderNumber} - ₹${order.totalAmount.toFixed(2)} | Contact: ${user.phone}`,
       html: createOwnerEmailTemplate(order, user)
@@ -240,7 +245,7 @@ const sendQuickOrderConfirmationEmails = async ({ to, user, order }) => {
 
     // Email to customer
     const customerMailOptions = {
-      from: `"Astro Crackers" <${process.env.EMAIL_USER}>`,
+      from: `"Astro Crackers" <${process.env.EMAIL_USERNAME}>`,
       to: to,
       subject: `✅ Order Confirmed #${order.orderNumber} - Astro Crackers | We'll call you soon!`,
       html: createCustomerEmailTemplate(order, user)

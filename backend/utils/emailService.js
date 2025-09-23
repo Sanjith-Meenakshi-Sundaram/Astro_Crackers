@@ -3,7 +3,9 @@ const nodemailer = require('nodemailer');
 // Use the simple and effective 'gmail' service transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: "smtp-relay.brevo.com",
+    port: 587, // or 465 for SSL
+    secure: false, // true if using 465
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -134,7 +136,7 @@ const sendOrderConfirmationEmails = async ({ to, user, order }) => {
   try {
     // Email to owner
     const ownerMailOptions = {
-      from: `"Astro Crackers Orders" <${process.env.EMAIL_USER}>`,
+      from: `"Astro Crackers Orders" <${process.env.EMAIL_USERNAME}>`,
       to: process.env.ADMIN_EMAIL,
       subject: `🎆 New Order #${order.orderNumber} - ₹${order.totalAmount.toFixed(2)}`,
       html: createOwnerEmailTemplate(order, user)
@@ -142,7 +144,7 @@ const sendOrderConfirmationEmails = async ({ to, user, order }) => {
 
     // Email to customer
     const customerMailOptions = {
-      from: `"Astro Crackers" <${process.env.EMAIL_USER}>`,
+      from: `"Astro Crackers" <${process.env.EMAIL_USERNAME}>`,
       to: to,
       subject: `Order Confirmation #${order.orderNumber} - Astro Crackers`,
       html: createCustomerEmailTemplate(order, user)

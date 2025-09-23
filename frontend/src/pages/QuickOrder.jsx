@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Minus, Mail, Phone, MapPin, User } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Mail, Phone, MapPin, User, Download } from 'lucide-react';
 
 const QuickOrder = () => {
   const [categories, setCategories] = useState([]);
@@ -19,6 +19,7 @@ const QuickOrder = () => {
     }
   });
   const [submitting, setSubmitting] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   const categoryNames = [
     'morning crackers',
@@ -69,6 +70,326 @@ const QuickOrder = () => {
 
     fetchAllProducts();
   }, []);
+
+  // Generate and download PDF price list
+  const downloadPriceList = async () => {
+    setGeneratingPDF(true);
+    try {
+      // Create a new window for PDF content
+      const printWindow = window.open('', '_blank');
+      
+      // Get all categories with their products (maintain order and avoid duplication)
+      const categoriesWithProducts = [];
+      categories.forEach(category => {
+        if (products[category] && products[category].length > 0) {
+          categoriesWithProducts.push({
+            categoryName: category,
+            products: products[category].map(product => ({
+              ...product,
+              originalPrice: calculateOriginalPrice(product.price)
+            }))
+          });
+        }
+      });
+
+      // Split categories into 3 pages
+      const totalCategories = categoriesWithProducts.length;
+      const categoriesPerPage = Math.ceil(totalCategories / 3);
+      
+      const page1Categories = categoriesWithProducts.slice(0, categoriesPerPage);
+      const page2Categories = categoriesWithProducts.slice(categoriesPerPage, categoriesPerPage * 2);
+      const page3Categories = categoriesWithProducts.slice(categoriesPerPage * 2);
+
+      // Create PDF-styled HTML content
+      const pdfContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>ASTRO CRACKERS - Price List</title>
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            body {
+              font-family: Arial, sans-serif;
+              background: white;
+              color: #333;
+            }
+            
+            .page {
+              width: 210mm;
+              min-height: 297mm;
+              margin: 0 auto;
+              padding: 15mm;
+              background: white;
+              page-break-after: always;
+            }
+            
+            .page:last-child {
+              page-break-after: auto;
+            }
+            
+            .header {
+              background: linear-gradient(to right, #dc2626, #b91c1c);
+              color: white;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 15px;
+              text-align: center;
+            }
+            
+            .header h1 {
+              font-size: 24px;
+              font-weight: bold;
+              margin-bottom: 5px;
+            }
+            
+            .header .subtitle {
+              font-size: 12px;
+              opacity: 0.9;
+              margin-bottom: 8px;
+            }
+            
+            .offer-badge {
+              background: #fbbf24;
+              color: #b91c1c;
+              padding: 5px 12px;
+              border-radius: 15px;
+              font-weight: bold;
+              display: inline-block;
+              font-size: 12px;
+              margin-top: 5px;
+            }
+            
+            .contact-info {
+              display: flex;
+              justify-content: space-around;
+              margin-top: 10px;
+              font-size: 10px;
+            }
+            
+            .contact-item {
+              display: flex;
+              align-items: center;
+              gap: 3px;
+            }
+            
+            .category-section {
+              margin-bottom: 20px;
+            }
+            
+            .category-title {
+              background: #dc2626;
+              color: white;
+              padding: 8px 15px;
+              border-radius: 6px 6px 0 0;
+              font-size: 14px;
+              font-weight: bold;
+              text-transform: uppercase;
+              margin-bottom: 0;
+            }
+            
+            .products-table {
+              width: 100%;
+              border-collapse: collapse;
+              background: white;
+              border: 2px solid #fecaca;
+              border-radius: 0 0 6px 6px;
+              overflow: hidden;
+            }
+            
+            .products-table th {
+              background: #dc2626;
+              color: white;
+              padding: 8px;
+              text-align: left;
+              font-weight: bold;
+              font-size: 12px;
+            }
+            
+            .products-table th:nth-child(1) { width: 50px; }
+            .products-table th:nth-child(2) { width: auto; }
+            .products-table th:nth-child(3) { width: 100px; text-align: center; }
+            
+            .products-table td {
+              padding: 8px;
+              border-bottom: 1px solid #fee2e2;
+              font-size: 11px;
+            }
+            
+            .products-table tr:nth-child(even) {
+              background: #f9fafb;
+            }
+            
+            .product-image {
+              width: 35px;
+              height: 35px;
+              background: #e5e7eb;
+              border-radius: 4px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 8px;
+              color: #6b7280;
+            }
+            
+            .product-image img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              border-radius: 4px;
+            }
+            
+            .product-name {
+              font-weight: bold;
+              color: #1f2937;
+              margin-bottom: 2px;
+              font-size: 12px;
+            }
+            
+            .best-seller-badge {
+              background: #fbbf24;
+              color: #b45309;
+              font-size: 8px;
+              padding: 1px 4px;
+              border-radius: 3px;
+              margin-top: 2px;
+              display: inline-block;
+            }
+            
+            .price-container {
+              text-align: center;
+            }
+            
+            .original-price {
+              color: #6b7280;
+              text-decoration: line-through;
+              font-size: 10px;
+              display: block;
+            }
+            
+            .current-price {
+              color: #16a34a;
+              font-weight: bold;
+              font-size: 12px;
+            }
+            
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              padding: 15px;
+              background: #f9fafb;
+              border-radius: 6px;
+              font-size: 10px;
+              color: #6b7280;
+            }
+            
+            .footer p {
+              margin-bottom: 5px;
+            }
+            
+            @media print {
+              body { background: white; }
+              .page { margin: 0; padding: 12mm; box-shadow: none; }
+            }
+          </style>
+        </head>
+        <body>
+          ${generatePageHTML(page1Categories, 1)}
+          ${page2Categories.length > 0 ? generatePageHTML(page2Categories, 2) : ''}
+          ${page3Categories.length > 0 ? generatePageHTML(page3Categories, 3) : ''}
+        </body>
+        </html>
+      `;
+
+      function generatePageHTML(pageCategories, pageNum) {
+        return `
+          <div class="page">
+            <div class="header">
+              <h1>🎆 ASTRO CRACKERS</h1>
+              <div class="subtitle">DIRECT FACTORY OUTLET</div>
+              <div class="offer-badge">${discount}% OFFER</div>
+              <div class="contact-info">
+                <div class="contact-item">
+                  📞 +91 8300372046
+                </div>
+                <div class="contact-item">
+                  ✉️ crackers.astro@gmail.com
+                </div>
+              </div>
+            </div>
+            
+            ${pageCategories.map(categoryData => `
+              <div class="category-section">
+                <div class="category-title">${categoryData.categoryName}</div>
+                <table class="products-table">
+                  <thead>
+                    <tr>
+                      <th>Image</th>
+                      <th>Products</th>
+                      <th>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${categoryData.products.map(product => `
+                      <tr>
+                        <td>
+                          <div class="product-image">
+                            ${product.images && product.images[0] ? 
+                              `<img src="${product.images[0]}" alt="${product.name}" />` : 
+                              'No Image'
+                            }
+                          </div>
+                        </td>
+                        <td>
+                          <div class="product-name">${product.name}</div>
+                          ${product.isBestSeller ? '<span class="best-seller-badge">Best Seller</span>' : ''}
+                        </td>
+                        <td class="price-container">
+                          <span class="original-price">₹${product.originalPrice}</span>
+                          <span class="current-price">₹${product.price}</span>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `).join('')}
+            
+            ${pageNum === 3 || (pageNum === 2 && page3Categories.length === 0) || (pageNum === 1 && page2Categories.length === 0 && page3Categories.length === 0) ? `
+              <div class="footer">
+                <p><strong>Explore a Wide Range of Crackers & Sparklers for all your Festival Celebration</strong></p>
+                <p>Transportation charges to be paid by the customer</p>
+                <p>Contact us: +91 8300372046 | crackers.astro@gmail.com</p>
+                <p>Generated on: ${new Date().toLocaleDateString()}</p>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      // Write content to new window
+      printWindow.document.write(pdfContent);
+      printWindow.document.close();
+      
+      // Wait for content to load, then print
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 500);
+      };
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate price list. Please try again.');
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
 
   // Cart functions
   const addToCart = (product) => {
@@ -212,7 +533,15 @@ const QuickOrder = () => {
               </div>
             </div>
             <div className="mt-4 md:mt-0 text-center">
-              
+              {/* Download Price List Button */}
+              <button
+                onClick={downloadPriceList}
+                disabled={generatingPDF || categories.length === 0}
+                className="bg-white text-red-600 hover:bg-gray-100 font-bold py-2 px-4 rounded-lg transition-colors mb-3 flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download size={16} />
+                {generatingPDF ? 'Generating...' : 'Download Price List'}
+              </button>
               <div className="flex items-center gap-4 text-sm">
                 <span className="flex items-center gap-1">
                   <Phone size={16} />
