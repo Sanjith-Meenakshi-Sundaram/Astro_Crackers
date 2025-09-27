@@ -611,7 +611,7 @@ const QuickOrder = () => {
                             <td className="p-3">
                               <div>
                                 <h4 className="font-bold text-gray-800">{product.name}</h4>
-                                <p className="text-sm text-gray-600">{product.description}</p>
+                                {/* <p className="text-sm text-gray-600">{product.description}</p> */}
                                 {product.isBestSeller && (
                                   <span className="inline-block bg-yellow-400 text-yellow-800 text-xs px-2 py-1 rounded mt-1">
                                     Best Seller
