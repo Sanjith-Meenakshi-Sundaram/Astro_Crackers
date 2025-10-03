@@ -1,25 +1,32 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, Star, ShoppingCart, LogOut } from "lucide-react";
+import { Package, Star, ShoppingCart, LogOut, FileText } from "lucide-react";
 import AdminNavbar from "./AdminNavbar";
+
 const options = [
   {
     name: "All Products",
     description: "View, add, edit and delete products",
     icon: Package,
-    path: "/admin/products", // ✅ frontend route
+    path: "/admin/products",
   },
   {
     name: "Featured Products",
     description: "Manage featured items",
     icon: Star,
-    path: "/admin/featured", // ✅ frontend route
+    path: "/admin/featured",
   },
   {
     name: "Customer Orders",
     description: "View and manage customer orders",
     icon: ShoppingCart,
-    path: "/admin/orders", // ✅ frontend route
+    path: "/admin/orders",
+  },
+  {
+    name: "Create Invoice",
+    description: "Generate invoices for customers",
+    icon: FileText,
+    path: "/admin/invoice",
   },
 ];
 
@@ -40,7 +47,7 @@ const AdminDashboard = () => {
           {options.map((opt, idx) => (
             <div
               key={idx}
-              onClick={() => navigate(opt.path)} // ✅ route navigation
+              onClick={() => navigate(opt.path)}
               className="cursor-pointer bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 flex items-start gap-4 border border-gray-100 hover:border-gray-200"
             >
               <div className="p-3 rounded-lg bg-red-50 text-red-600">

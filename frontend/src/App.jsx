@@ -31,6 +31,8 @@ import Contact from "./pages/Contact";
 import QuickOrder from "./pages/QuickOrder";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Invoice from "./admin_pages/InvoiceGen";
+import AdminRoute from "./components/Protection";
 // import Toast from "./components/Toast";
 
 // import ToastProvider from "./components/ToastProvider";
@@ -72,11 +74,36 @@ export default function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/wishlist" element={<Wishlist />} />
 
-          <Route path="/admin-dashboard" element={<Dashboard />} />
+          {/* <Route path="/admin-dashboard" element={<Dashboard />} />
           <Route path="/admin/category/:type" element={<CategoryPage />} />
           <Route path="/admin/products" element={<AllProductsPage />} />
           <Route path="/admin/featured" element={<FeaturedProductsPage />} />
           <Route path="/admin/orders" element={<CustomerOrdersPage />} />
+          <Route path="/admin/invoice" element={<Invoice />} /> */}
+          <Route path="/admin-dashboard" element={
+            <AdminRoute><Dashboard /></AdminRoute>
+          } />
+
+          <Route path="/admin/category/:type" element={
+            <AdminRoute><CategoryPage /></AdminRoute>
+          } />
+
+          <Route path="/admin/products" element={
+            <AdminRoute><AllProductsPage /></AdminRoute>
+          } />
+
+          <Route path="/admin/featured" element={
+            <AdminRoute><FeaturedProductsPage /></AdminRoute>
+          } />
+
+          <Route path="/admin/orders" element={
+            <AdminRoute><CustomerOrdersPage /></AdminRoute>
+          } />
+
+          <Route path="/admin/invoice" element={
+            <AdminRoute><Invoice /></AdminRoute>
+          } />
+
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/quickorder" element={<QuickOrder />} />

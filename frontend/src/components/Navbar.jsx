@@ -17,9 +17,9 @@ const Navbar = () => {
 
   // Rotating promotional texts
   const promotionalTexts = [
-    "All crackers in our shop are premium quality and sourced directly from factory - Best prices guaranteed!",
-    "Direct factory sourcing means 40-80% cheaper prices on all crackers!",
-    "Quality crackers at wholesale prices - No middleman, maximum savings!",
+    "Premium factory crackers at the best prices!",
+    "Save 60–80% with direct factory rates!",
+    "Wholesale quality, zero middleman costs!",
     "Unbeatable quality & price!"
   ];
 

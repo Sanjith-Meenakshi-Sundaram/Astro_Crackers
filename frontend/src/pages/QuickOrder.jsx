@@ -522,33 +522,33 @@ const QuickOrder = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-6 shadow-lg">
+      <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4 md:p-6 shadow-lg">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">🎆 ASTRO CRACKERS</h1>
-              <p className="text-red-100">DIRECT FACTORY OUTLET</p>
-              <div className="bg-yellow-400 text-red-800 px-4 py-1 rounded-full inline-block mt-2 font-bold">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3 md:gap-0">
+            <div className="text-center md:text-left">
+              <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">🎆 ASTRO CRACKERS</h1>
+              <p className="text-red-100 text-sm md:text-base">DIRECT FACTORY OUTLET</p>
+              <div className="bg-yellow-400 text-red-800 px-3 py-0.5 md:px-4 md:py-1 rounded-full inline-block mt-1 md:mt-2 font-bold text-sm md:text-base">
                 {discount}% OFFER
               </div>
             </div>
-            <div className="mt-4 md:mt-0 text-center">
+            <div className="w-full md:w-auto text-center">
               {/* Download Price List Button */}
               <button
                 onClick={downloadPriceList}
                 disabled={generatingPDF || categories.length === 0}
-                className="bg-white text-red-600 hover:bg-gray-100 font-bold py-2 px-4 rounded-lg transition-colors mb-3 flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-white text-red-600 hover:bg-gray-100 font-bold py-1 px-2 md:py-1.5 md:px-3 rounded-lg transition-colors mb-2 md:mb-3 flex items-center justify-center gap-1.5 text-xs md:text-sm w-auto mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Download size={16} />
+                <Download size={12} className="md:w-3.5 md:h-3.5" />
                 {generatingPDF ? 'Generating...' : 'Download Price List'}
               </button>
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 text-xs md:text-sm">
                 <span className="flex items-center gap-1">
-                  <Phone size={16} />
+                  <Phone size={14} className="md:w-4 md:h-4" />
                   +91 8300372046
                 </span>
                 <span className="flex items-center gap-1">
-                  <Mail size={16} />
+                  <Mail size={14} className="md:w-4 md:h-4" />
                   crackers.astro@gmail.com
                 </span>
               </div>
