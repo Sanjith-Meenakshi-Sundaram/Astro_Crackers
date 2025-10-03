@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, Download, Receipt, X, ShoppingCart, User, Phone, MapPin, Printer, ArrowLeft } from 'lucide-react';
+import { Plus, Minus, Download, Receipt, X, ShoppingCart, User, ArrowLeft, Search as SearchIcon } from 'lucide-react';
 
 const InvoiceGenerator = () => {
   const [categories, setCategories] = useState([]);
@@ -13,6 +13,10 @@ const InvoiceGenerator = () => {
   });
   const [showInvoice, setShowInvoice] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [allProducts, setAllProducts] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
 
   const categoryNames = [
     'morning crackers',
@@ -45,20 +49,26 @@ const InvoiceGenerator = () => {
     const fetchAllProducts = async () => {
       setLoading(true);
       try {
-        const productsByCategory = {};
+        // Fetch all products in one call
+        const response = await fetch('https://astro-crackers.onrender.com/api/products?limit=1000&page=1');
+        if (response.ok) {
+          const data = await response.json();
+          const productList = Array.isArray(data) ? data : data.products || [];
+          
+          // Store all products for search
+          setAllProducts(productList);
+          
+          // Group by category
+          const productsByCategory = {};
+          categoryNames.forEach(cat => {
+            productsByCategory[cat] = productList.filter(
+              p => p.category.toLowerCase() === cat.toLowerCase()
+            );
+          });
 
-        for (const category of categoryNames) {
-          const response = await fetch(`https://astro-crackers.onrender.com/api/products/category/${encodeURIComponent(category)}`);
-          if (response.ok) {
-            const data = await response.json();
-            productsByCategory[category] = data.products || [];
-          } else {
-            productsByCategory[category] = [];
-          }
+          setProducts(productsByCategory);
+          setCategories(categoryNames);
         }
-
-        setProducts(productsByCategory);
-        setCategories(categoryNames);
       } catch (error) {
         console.error('Error fetching products:', error);
         const emptyProducts = {};
@@ -112,6 +122,25 @@ const InvoiceGenerator = () => {
         }
       }));
     }
+  };
+
+  // Client-side search - same logic as AdminProducts
+  const handleSearch = (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const filtered = allProducts.filter(product =>
+      product.name.toLowerCase().includes(query.toLowerCase()) ||
+      product.description.toLowerCase().includes(query.toLowerCase()) ||
+      product.category.toLowerCase().includes(query.toLowerCase()) ||
+      (product.tags && product.tags.some(tag =>
+        tag.toLowerCase().includes(query.toLowerCase())
+      ))
+    );
+
+    setSearchResults(filtered);
   };
 
   const invoiceItems = Object.values(invoice);
@@ -450,12 +479,22 @@ const InvoiceGenerator = () => {
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
       <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4 md:p-6 shadow-lg">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">🎆 ASTRO CRACKERS</h1>
-            <p className="text-red-100 text-sm md:text-base">Invoice Generator - Direct Factory Outlet</p>
-            <div className="bg-yellow-400 text-red-800 px-4 py-1 rounded-full inline-block mt-2 font-bold text-sm md:text-base">
-              {discount}% OFFER
+          <div className="flex items-center justify-between">
+            <div className="flex-1 text-center">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">🎆 ASTRO CRACKERS</h1>
+              <p className="text-red-100 text-sm md:text-base">Invoice Generator - Direct Factory Outlet</p>
+              <div className="bg-yellow-400 text-red-800 px-4 py-1 rounded-full inline-block mt-2 font-bold text-sm md:text-base">
+                {discount}% OFFER
+              </div>
             </div>
+            
+            <button
+              onClick={() => setShowSearch(true)}
+              className="bg-white text-red-600 hover:bg-red-50 p-3 rounded-full transition-colors shadow-lg flex-shrink-0 ml-4"
+              title="Search Products"
+            >
+              <SearchIcon size={24} />
+            </button>
           </div>
         </div>
       </div>
@@ -655,6 +694,149 @@ const InvoiceGenerator = () => {
         )}
       </div>
 
+      {/* Search Modal */}
+      {showSearch && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">
+              <h3 className="font-bold text-xl text-gray-800">Search Products</h3>
+              <button
+                onClick={() => {
+                  setShowSearch(false);
+                  setSearchQuery('');
+                  setSearchResults([]);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="mb-6">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      handleSearch(e.target.value);
+                    }}
+                    placeholder="Search by product name, category, tags..."
+                    className="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              {searchResults.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Found {searchResults.length} product{searchResults.length !== 1 ? 's' : ''}
+                  </p>
+                  {searchResults.map((product) => {
+                    const prices = calculatePrices(product.price);
+                    const currentQuantity = invoice[product._id]?.quantity || 0;
+
+                    return (
+                      <div
+                        key={product._id}
+                        className="border border-gray-200 rounded-lg p-4 hover:border-red-300 hover:shadow-md transition-all"
+                      >
+                        <div className="flex gap-4">
+                          <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            {product.images?.[0] ? (
+                              <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                                No Image
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="font-bold text-gray-800">{product.name}</h4>
+                                {product.category && (
+                                  <p className="text-xs text-gray-500 uppercase mt-1">{product.category}</p>
+                                )}
+                              </div>
+                              {product.isBestSeller && (
+                                <span className="bg-yellow-400 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+                                  Best Seller
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-gray-500 line-through text-sm">₹{prices.originalPrice}</span>
+                              <span className="text-green-600 font-bold">₹{prices.sellingPrice}</span>
+                              <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">
+                                {prices.discountPercentage}% OFF
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              {currentQuantity > 0 ? (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => removeFromInvoice(product._id)}
+                                    className="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-full flex items-center justify-center transition-colors"
+                                  >
+                                    <Minus size={16} />
+                                  </button>
+                                  <span className="w-12 text-center font-bold">{currentQuantity}</span>
+                                  <button
+                                    onClick={() => addToInvoice(product)}
+                                    className="w-8 h-8 bg-green-100 hover:bg-green-200 text-green-600 rounded-full flex items-center justify-center transition-colors"
+                                  >
+                                    <Plus size={16} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    addToInvoice(product);
+                                    alert(`${product.name} added to invoice!`);
+                                  }}
+                                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                                >
+                                  <Plus size={16} />
+                                  Add to Invoice
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : searchQuery.trim() ? (
+                <div className="text-center py-12 text-gray-500">
+                  <SearchIcon size={48} className="mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-medium mb-2">No products found</h3>
+                  <p className="text-sm">Try different keywords</p>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <SearchIcon size={48} className="mx-auto mb-4 text-gray-300" />
+                  <p className="text-sm">Start typing to search products</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showInvoice && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -743,10 +925,6 @@ const InvoiceGenerator = () => {
                   <span>Discount ({discount}%):</span>
                   <span>-₹{totalSavings}</span>
                 </div>
-                {/* <div className="flex justify-between text-sm text-green-600 font-bold">
-                  <span>Total Savings:</span>
-                  <span>₹{totalSavings}</span>
-                </div> */}
                 <div className="flex justify-between text-xl font-bold text-red-600 border-t-2 pt-2">
                   <span>Total Amount:</span>
                   <span>₹{totalSellingPrice}</span>
@@ -767,13 +945,6 @@ const InvoiceGenerator = () => {
               >
                 <Download size={18} />
                 {generatingPDF ? 'Generating...' : 'Download PDF'}
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="flex-1 bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <Printer size={18} />
-                Print
               </button>
             </div>
           </div>
