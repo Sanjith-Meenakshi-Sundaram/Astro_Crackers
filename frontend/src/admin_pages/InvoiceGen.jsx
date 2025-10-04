@@ -696,17 +696,17 @@ const InvoiceGenerator = () => {
 
       {/* Search Modal */}
       {showSearch && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">
-              <h3 className="font-bold text-xl text-gray-800">Search Products</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center overflow-y-auto">
+          <div className="bg-white rounded-lg w-full max-w-4xl my-4 mx-4 max-h-[calc(100vh-2rem)] flex flex-col shadow-2xl">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10 rounded-t-lg">
+              <h3 className="font-bold text-lg md:text-xl text-gray-800">Search Products</h3>
               <button
                 onClick={() => {
                   setShowSearch(false);
                   setSearchQuery('');
                   setSearchResults([]);
                 }}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
               >
                 <X size={20} />
               </button>
@@ -732,12 +732,13 @@ const InvoiceGenerator = () => {
                 </div>
               </div>
 
-              {searchResults.length > 0 ? (
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600 mb-4">
-                    Found {searchResults.length} product{searchResults.length !== 1 ? 's' : ''}
-                  </p>
-                  {searchResults.map((product) => {
+              <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 250px)' }}>
+                {searchResults.length > 0 ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600 mb-4">
+                      Found {searchResults.length} product{searchResults.length !== 1 ? 's' : ''}
+                    </p>
+                    {searchResults.map((product) => {
                     const prices = calculatePrices(product.price);
                     const currentQuantity = invoice[product._id]?.quantity || 0;
 
@@ -832,6 +833,22 @@ const InvoiceGenerator = () => {
                   <p className="text-sm">Start typing to search products</p>
                 </div>
               )}
+              </div>
+            </div>
+
+            {/* Bottom Back Button for Mobile */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 rounded-b-lg">
+              <button
+                onClick={() => {
+                  setShowSearch(false);
+                  setSearchQuery('');
+                  setSearchResults([]);
+                }}
+                className="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowLeft size={18} />
+                Back to Invoice
+              </button>
             </div>
           </div>
         </div>
