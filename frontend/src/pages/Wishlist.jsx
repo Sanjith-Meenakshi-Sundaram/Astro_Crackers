@@ -30,7 +30,10 @@ const WishlistPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setWishlistItems(response.data.items || []);
+      // Filter out items with null products (deleted products)
+      const validItems = (response.data.items || []).filter(item => item.product !== null && item.product !== undefined);
+      
+      setWishlistItems(validItems);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching wishlist:', err);
@@ -46,7 +49,7 @@ const WishlistPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setWishlistItems(items => items.filter(item => item.product._id !== productId));
+      setWishlistItems(items => items.filter(item => item.product?._id !== productId));
     } catch (err) {
       console.error('Error removing from wishlist:', err);
       alert('Failed to remove item from wishlist');
@@ -94,7 +97,9 @@ const WishlistPage = () => {
   // Move all to cart
   const moveAllToCart = async () => {
     for (const item of wishlistItems) {
-      await moveToCart(item.product._id);
+      if (item.product?._id) {
+        await moveToCart(item.product._id);
+      }
     }
   };
 
@@ -183,87 +188,92 @@ const WishlistPage = () => {
 
         {/* Wishlist Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {wishlistItems.map((item) => (
-            <div key={item.product._id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group">
-              {/* Product Image */}
-              <div className="relative">
-                <Link to={`/products/${item.product._id}`}>
-                  <img
-                    src={item.product.images?.[0] || "https://placehold.co/200x200/e5e7eb/6b7280?text=No+Image"}
-                    alt={item.product.name}
-                    className="w-full h-40 object-cover group-hover:opacity-75 transition-opacity rounded-t-lg"
-                  />
-                </Link>
-                
-                {/* Remove from Wishlist */}
-                <button
-                  onClick={() => removeFromWishlist(item.product._id)}
-                  className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
-                  title="Remove from wishlist"
-                >
-                  <Heart size={14} className="text-red-500 fill-red-500" />
-                </button>
-
-                {/* Bestseller Badge */}
-                {item.product.isBestSeller && (
-                  <span className="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded font-medium">
-                    Bestseller
-                  </span>
-                )}
-              </div>
-
-              {/* Product Details */}
-              <div className="p-3">
-                <Link 
-                  to={`/products/${item.product._id}`}
-                  className="block text-gray-800 font-medium text-sm hover:text-blue-600 transition-colors line-clamp-2 mb-2 min-h-[40px]"
-                >
-                  {item.product.name}
-                </Link>
-                
-                <p className="text-gray-900 font-semibold text-base mb-3">₹{item.product.price}</p>
-
-                {/* Action Buttons */}
-                <div className="space-y-2">
+          {wishlistItems.map((item) => {
+            // Safety check for product existence
+            if (!item.product) return null;
+            
+            return (
+              <div key={item.product._id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group">
+                {/* Product Image */}
+                <div className="relative">
+                  <Link to={`/products/${item.product._id}`}>
+                    <img
+                      src={item.product.images?.[0] || "https://placehold.co/200x200/e5e7eb/6b7280?text=No+Image"}
+                      alt={item.product.name}
+                      className="w-full h-40 object-cover group-hover:opacity-75 transition-opacity rounded-t-lg"
+                    />
+                  </Link>
+                  
+                  {/* Remove from Wishlist */}
                   <button
-                    onClick={() => moveToCart(item.product._id)}
-                    disabled={addingToCartId === item.product._id}
-                    className="w-full bg-orange-500 text-white py-2 rounded text-sm font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                    onClick={() => removeFromWishlist(item.product._id)}
+                    className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
+                    title="Remove from wishlist"
                   >
-                    {addingToCartId === item.product._id ? (
-                      <>
-                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-xs">Moving...</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag size={14} />
-                        <span>Move to Cart</span>
-                      </>
-                    )}
+                    <Heart size={14} className="text-red-500 fill-red-500" />
                   </button>
 
-                  <div className="flex gap-1">
+                  {/* Bestseller Badge */}
+                  {item.product.isBestSeller && (
+                    <span className="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded font-medium">
+                      Bestseller
+                    </span>
+                  )}
+                </div>
+
+                {/* Product Details */}
+                <div className="p-3">
+                  <Link 
+                    to={`/products/${item.product._id}`}
+                    className="block text-gray-800 font-medium text-sm hover:text-blue-600 transition-colors line-clamp-2 mb-2 min-h-[40px]"
+                  >
+                    {item.product.name}
+                  </Link>
+                  
+                  <p className="text-gray-900 font-semibold text-base mb-3">₹{item.product.price}</p>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-2">
                     <button
-                      onClick={() => addToCart(item.product._id)}
+                      onClick={() => moveToCart(item.product._id)}
                       disabled={addingToCartId === item.product._id}
-                      className="flex-1 border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-medium hover:border-orange-500 hover:text-orange-500 transition-colors disabled:opacity-50"
+                      className="w-full bg-orange-500 text-white py-2 rounded text-sm font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                     >
-                      Add to Cart
+                      {addingToCartId === item.product._id ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-xs">Moving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag size={14} />
+                          <span>Move to Cart</span>
+                        </>
+                      )}
                     </button>
-                    
-                    <button
-                      onClick={() => removeFromWishlist(item.product._id)}
-                      className="p-1.5 border border-gray-300 text-gray-600 rounded hover:border-red-500 hover:text-red-500 transition-colors"
-                      title="Remove"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => addToCart(item.product._id)}
+                        disabled={addingToCartId === item.product._id}
+                        className="flex-1 border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-medium hover:border-orange-500 hover:text-orange-500 transition-colors disabled:opacity-50"
+                      >
+                        Add to Cart
+                      </button>
+                      
+                      <button
+                        onClick={() => removeFromWishlist(item.product._id)}
+                        className="p-1.5 border border-gray-300 text-gray-600 rounded hover:border-red-500 hover:text-red-500 transition-colors"
+                        title="Remove"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Mobile Move All Button */}
